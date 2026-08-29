@@ -1,8 +1,19 @@
-package application;
+package application.renderer;
+
+import application.FractalImage;
+import application.Rect;
+import application.transformation.Transformation;
 
 import java.util.List;
 
-public class Renderer {
+public class MultiThreadRenderer implements Renderer {
+    @Override
+    public FractalImage render(FractalImage canvas, Rect world, List<Transformation> variations, int samples, short iterPerSample, long seed) {
+        return null;
+    }
+
+
+   /* @Override
     FractalImage render(
             FractalImage canvas,
             Rect world,
@@ -32,5 +43,5 @@ public class Renderer {
                 }
             }
         }
-    }
+    } */
 }

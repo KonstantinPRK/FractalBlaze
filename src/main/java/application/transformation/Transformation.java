@@ -1,4 +1,6 @@
-package application;
+package application.transformation;
+
+import application.Point;
 
 import java.util.function.Function;
 

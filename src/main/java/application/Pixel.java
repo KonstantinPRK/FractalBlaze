@@ -1,3 +1,3 @@
 package application;
 
-public record Pixel(int r, int g, int b, int hitCount) { }
+public record Pixel(int RED, int GREEN, int BLUE, int hitCount) {}
