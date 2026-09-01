@@ -1,31 +1,19 @@
 package application.parameters;
 
+import application.renderer.Renderer;
+import application.world.Magnifier;
 import application.transformation.Transformation;
 
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.Random;
+import java.util.List;
 
 public record Configuration(
+        Path outputPath,
         ImageSize imageSize,
         ImageFormat imageFormat,
-        Path outputPath,
+        Magnifier magnifierZoom,
         Integer iterationCount,
-        Random random,
-        Transformation[] transformationsArray)
-{
-
-    //потом дополни
-    public Configuration {
-        Objects.requireNonNull(imageSize, "imageSize must not be null");
-        Objects.requireNonNull(imageFormat, "imageFormat must not be null");
-        Objects.requireNonNull(iterationCount, "iterationCount must not be null");
-        Objects.requireNonNull(random, "random must not be null");
-        Objects.requireNonNull(transformationsArray, "transformationsArray must not be null");
-
-        for (Transformation transformation : transformationsArray) {
-            Objects.requireNonNull(transformation, "transformationsArray must not contain null");
-        }
-    }
-
-}
+        Long randomSeed,
+        Renderer renderer,
+        List<Transformation> transformations
+) {}

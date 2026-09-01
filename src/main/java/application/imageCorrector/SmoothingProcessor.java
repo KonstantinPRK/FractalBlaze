@@ -1,4 +1,4 @@
-package application.imageProcessor;
+package application.imageCorrector;
 
 public class SmoothingProcessor {
 }

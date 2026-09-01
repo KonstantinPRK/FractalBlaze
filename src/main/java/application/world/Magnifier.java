@@ -1,7 +1,7 @@
-package application;
+package application.world;
 
-public record Rect(double x, double y, double width, double height) {
-    public Rect {
+public record Magnifier(double x, double y, double width, double height) {
+    public Magnifier {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Rectangle dimensions must be positive");
         }

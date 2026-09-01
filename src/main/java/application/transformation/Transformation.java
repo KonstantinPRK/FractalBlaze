@@ -1,6 +1,6 @@
 package application.transformation;
 
-import application.Point;
+import application.world.Point;
 
 import java.util.function.Function;
 
