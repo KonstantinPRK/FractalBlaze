@@ -9,6 +9,7 @@ import application.userInterface.UserInterface;
 import application.world.Magnifier;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageWriter;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -24,17 +25,17 @@ public class LocalConsole implements UserInterface {
     public Configuration requestConfiguration() {
         Path outputPath = configurator.requestOutputPath();
         ImageSize imageSize = configurator.requestImageSize();
-        ImageFormat imageFormat = configurator.requestImageFormat();
+        ImageWriter imageWriter = configurator.requestImageWriter();
         Magnifier magnifier = configurator.requestMagnifierZoom();
         Integer iterationCount = configurator.requestIterationCount();
-        Long randomSeed = configurator.requestRandomSeed();
+        Integer randomSeed = configurator.requestRandomSeed();
         Renderer renderer = configurator.requestRenderer();
         List<Transformation> transformations = configurator.requestTransformationsList();
 
         return new Configuration(
                 outputPath,
                 imageSize,
-                imageFormat,
+                imageWriter,
                 magnifier,
                 iterationCount,
                 randomSeed,

@@ -1,16 +1,38 @@
 package application.world;
 
-public record Magnifier(double x, double y, double width, double height) {
+import java.util.Objects;
+
+public record Magnifier(
+        Point focusPoint,
+        double visibleWorldWidth,
+        double visibleWorldHeight
+) {
     public Magnifier {
-        if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException("Rectangle dimensions must be positive");
+        Objects.requireNonNull(focusPoint, "Focus point must not be null");
+
+        if (visibleWorldWidth <= 0 || visibleWorldHeight <= 0) {
+            throw new IllegalArgumentException(
+                    "Visible world dimensions must be positive"
+            );
         }
     }
 
     public boolean contains(Point point) {
-        return point.x() >= x
-                && point.x() < x + width
-                && point.y() >= y
-                && point.y() < y + height;
+        double leftBorder =
+                focusPoint.x() - visibleWorldWidth / 2;
+
+        double rightBorder =
+                focusPoint.x() + visibleWorldWidth / 2;
+
+        double bottomBorder =
+                focusPoint.y() - visibleWorldHeight / 2;
+
+        double topBorder =
+                focusPoint.y() + visibleWorldHeight / 2;
+
+        return point.x() >= leftBorder
+                && point.x() < rightBorder
+                && point.y() >= bottomBorder
+                && point.y() < topBorder;
     }
 }

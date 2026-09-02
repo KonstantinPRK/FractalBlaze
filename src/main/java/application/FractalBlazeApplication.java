@@ -2,58 +2,45 @@ package application;
 
 import application.imageCorrector.ImageCorrector;
 import application.parameters.Configuration;
-import application.renderer.Renderer;
 import application.userInterface.ImageFileWriter;
 import application.userInterface.UserInterface;
+import application.userInterface.localConsole.LocalConsole;
 import application.world.FractalImage;
 import jakarta.annotation.PostConstruct;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.nio.file.Path;
 import java.util.List;
 
 @SpringBootApplication
 public final class FractalBlazeApplication {
-    private final UserInterface userInterface;
-    private final List<ImageCorrector> imageCorrectors;
-    private final ImageFileWriter imageFileWriter;
+    UserInterface userInterface = new LocalConsole();
+    List<ImageCorrector> imageCorrectors;
+    ImageFileWriter imageFileWriter;
 
-    public FractalBlazeApplication(
-            UserInterface userInterface,
-            List<Renderer> availableRenderers,
-            List<ImageCorrector> imageCorrectors,
-            ImageFileWriter imageFileWriter
-    ) {
-        this.userInterface = userInterface;
-        this.imageCorrectors = List.copyOf(imageCorrectors);
-        this.imageFileWriter = imageFileWriter;
+
+    public static void main(String[] args){
+        SpringApplication.run(FractalBlazeApplication.class, args);
     }
-
 
     @PostConstruct
     public void start() {
         // 1. Получаем все параметры будущего изображения.
         Configuration configuration = userInterface.requestConfiguration();
-
-        // 2. Выбираем однопоточный или многопоточный renderer. // проще просто дать ему количество потоков а дальше он сам, то есть пока в едином экземпляре без интерфейса
-        Renderer selectedRenderer = availableRenderers.stream()
-                .filter(renderer -> renderer.supports(configuration.threadCount()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Renderer not found for thread count: " + configuration.threadCount()
-                ));
-
-        // 3. Создаём пустой холст требуемого размера.
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
-
-        // 4. Генерируем попадания точек в пиксели холста.
-        FractalImage renderedImage = selectedRenderer.render(
+        FractalImage renderedImage = configuration.renderer().render(
                 emptyCanvas,
-                configuration.world(),
+                configuration.magnifierZoom(),
                 configuration.transformations(),
                 configuration.iterationCount(),
-                configuration.seed()
+                configuration.randomSeed()
         );
+        /*
+        // 3. Создаём пустой холст требуемого размера.
+
+
+        // 4. Генерируем попадания точек в пиксели холста.
+
 
         // 5. Последовательно выполняем подключённые коррекции изображения.
         for (ImageCorrector imageCorrector : imageCorrectors) {
@@ -69,7 +56,8 @@ public final class FractalBlazeApplication {
 
         // 7. Передаём сохранённый файл пользовательскому интерфейсу.
         userInterface.showImage(savedImagePath);
-    }
+         */
+}
 }
 
 /*

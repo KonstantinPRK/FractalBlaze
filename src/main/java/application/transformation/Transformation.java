@@ -4,5 +4,7 @@ import application.world.Point;
 
 import java.util.function.Function;
 
-public interface Transformation extends Function<Point, Point> {}
+public interface Transformation extends Function<Point, Point> {
+    String getName();
+}
 

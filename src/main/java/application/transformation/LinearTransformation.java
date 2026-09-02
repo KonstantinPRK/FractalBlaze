@@ -4,7 +4,7 @@ import application.world.Point;
 
 import java.util.Objects;
 
-public final class LinearTransformation implements Transformation {
+public class LinearTransformation implements Transformation {
     private final double scale;
     private final double shiftX;
     private final double shiftY;
@@ -22,5 +22,10 @@ public final class LinearTransformation implements Transformation {
                 point.x() * scale + shiftX,
                 point.y() * scale + shiftY
         );
+    }
+
+    @Override
+    public String getName() {
+        return "LINEAR";
     }
 }

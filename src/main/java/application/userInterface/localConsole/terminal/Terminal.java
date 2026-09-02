@@ -2,107 +2,81 @@ package application.userInterface.localConsole.terminal;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Компонент для работы с терминалом, объединяющий возможности форматирования,
- * вывода и ввода данных. Предоставляет методы для печати с форматированием,
- * вывода нумерованных списков и получения целых чисел от пользователя.
- *
- * @author unknown
- * @version 1.0
- */
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.List;
+
 @Component
 public class Terminal {
-    private final Editor edit;
+    private static final String OPTION_SEPARATOR = ": ";
+
     private final Output output;
     private final Input input;
 
-    /* String SEPARATOR = ": ",
-            ERROR = "Ошибка",
-            IntegerOutOfRange = "число вне диапазона. ",
-            notAnInteger = "введено не целое число. ",
-            offerToEnterNumber = "Введите число ",
-            from = "от ",
-            to = "до ",
-            inclusive = "включительно",
-            TryAgain = "Попробуйте снова. ";
-
-     */
-
-
-
-    public Terminal(Editor edit, Output output, Input input) {
-        this.edit = edit;
+    public Terminal(Output output, Input input) {
         this.output = output;
         this.input = input;
     }
 
-
-
     public void unformattedPrint(String... text) {
         for (String line : text) {
-            output.print(line);
-            output.printEmptyLines(1);
+            output.printLine(line);
         }
     }
 
+    public void printNumberedOptions(List<String> options) {
+        for (int optionIndex = 0; optionIndex < options.size(); optionIndex++) {
+            int optionNumber = optionIndex + 1;
 
-
-    public void printSystemDescription(String description) {
-        output.print(description);
-        output.printEmptyLines(1);
-    }
-
-
-
-    public void printUserParameter(String optionName, String SEPARATOR, String optionValue) {
-        output.print(
-                edit.bold(optionName),
-                edit.bold(SEPARATOR),
-                optionValue
-        );
-
-        output.printEmptyLines(0);
-    }
-
-
-
-    public void printNumberedOptions(String... options) {
-        for (int number = 1; number <= options.length; number++) {
-            output.print(
-                    edit.bold(String.valueOf(number)),
-                    SEPARATOR,
-                    options[number - 1]
+            output.printLine(
+                    optionNumber
+                            + OPTION_SEPARATOR
+                            + options.get(optionIndex)
             );
-
-            output.printEmptyLines(0);
         }
 
-        output.printEmptyLines(1);
+        output.printLine("");
     }
-
-
-
 
     public int getUserInt(int min, int max) {
-        output.print();
-        output.printEmptyLines(0);
+        output.print(
+                "Введите целое число от "
+                        + min
+                        + " до "
+                        + max
+                        + " включительно: "
+        );
 
         while (true) {
-            Integer userInt = input.readInt();
-            output.printEmptyLines(0);
+            Integer userNumber = input.readInt();
 
-            if (userInt == null) {
-                output.print();
-                output.printEmptyLines(0);
+            if (userNumber == null) {
+                output.print("Ошибка: введено не целое число. Попробуйте снова: ");
                 continue;
             }
 
-            if (userInt >= min && userInt <= max) {
-                return userInt;
+            if (userNumber >= min && userNumber <= max) {
+                return userNumber;
             }
 
-            output.print();
-            output.printEmptyLines(0);
+            output.print("Ошибка: число вне указанного диапазона. Попробуйте снова: ");
+        }
+    }
+
+    public Path getPath() {
+        while (true) {
+            String enteredPath = input.readLine();
+
+            if (enteredPath == null || enteredPath.isBlank()) {
+                output.print("Путь не должен быть пустым. Попробуйте снова: ");
+                continue;
+            }
+
+            try {
+                return Path.of(enteredPath.trim()).toAbsolutePath().normalize();
+            } catch (InvalidPathException exception) {
+                output.print("Не удалось распознать путь. Попробуйте снова: ");
+            }
         }
     }
 }

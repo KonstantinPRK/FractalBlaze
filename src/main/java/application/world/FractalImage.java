@@ -7,17 +7,9 @@ import java.util.Objects;
 
 public record FractalImage(Pixel[] data, ImageSize imageSize) {
     public FractalImage {
-        Objects.requireNonNull(data, "data must not be null");
-        Objects.requireNonNull(imageSize, "imageSize must not be null");
-
-        if (data.length != imageSize.width() * imageSize.height()) {
-            throw new IllegalArgumentException("Pixel array size does not match image size");
-        }
     }
 
     public static FractalImage create(ImageSize imageSize) {
-        Objects.requireNonNull(imageSize, "imageSize must not be null");
-
         Pixel[] pixels = new Pixel[imageSize.width() * imageSize.height()];
         Arrays.fill(pixels, new Pixel(0, 0, 0, 0));
         return new FractalImage(pixels, imageSize);
