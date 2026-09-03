@@ -2,9 +2,11 @@ package application.imageCorrector;
 
 import application.world.FractalImage;
 import application.world.Pixel;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 public final class LogDensityProcessor implements ImageCorrector {
     @Override
     public void process(FractalImage image) {
@@ -28,21 +30,57 @@ public final class LogDensityProcessor implements ImageCorrector {
                     continue;
                 }
 
-                int brightness = (int) Math.round(
-                        255.0 * Math.log1p(currentPixel.hitCount()) / maxDensity
-                );
+                double relativeDensity =
+                        Math.log1p(currentPixel.hitCount()) / maxDensity;
+
+                int correctedRed;
+                int correctedGreen;
+                int correctedBlue;
+
+                if (hasNoColor(currentPixel)) {
+                    int brightness = scaleColorComponent(255, relativeDensity);
+                    correctedRed = brightness;
+                    correctedGreen = brightness;
+                    correctedBlue = brightness;
+                } else {
+                    correctedRed = scaleColorComponent(
+                            currentPixel.red(),
+                            relativeDensity
+                    );
+                    correctedGreen = scaleColorComponent(
+                            currentPixel.green(),
+                            relativeDensity
+                    );
+                    correctedBlue = scaleColorComponent(
+                            currentPixel.blue(),
+                            relativeDensity
+                    );
+                }
 
                 image.setPixel(
                         pixelX,
                         pixelY,
                         new Pixel(
-                                brightness,
-                                brightness,
-                                brightness,
+                                correctedRed,
+                                correctedGreen,
+                                correctedBlue,
                                 currentPixel.hitCount()
                         )
                 );
             }
         }
+    }
+
+    private boolean hasNoColor(Pixel pixel) {
+        return pixel.red() == 0
+                && pixel.green() == 0
+                && pixel.blue() == 0;
+    }
+
+    private int scaleColorComponent(
+            int colorComponent,
+            double relativeDensity
+    ) {
+        return (int) Math.round(colorComponent * relativeDensity);
     }
 }

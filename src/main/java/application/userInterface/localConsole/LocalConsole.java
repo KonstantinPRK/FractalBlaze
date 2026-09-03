@@ -1,7 +1,6 @@
 package application.userInterface.localConsole;
 
 import application.parameters.Configuration;
-import application.parameters.ImageFormat;
 import application.parameters.ImageSize;
 import application.renderer.Renderer;
 import application.transformation.Transformation;
@@ -18,8 +17,11 @@ import java.util.List;
 
 @Component
 public class LocalConsole implements UserInterface {
-    Configurator configurator;
-    Responder responder;
+    private final Configurator configurator;
+
+    public LocalConsole(Configurator configurator) {
+        this.configurator = configurator;
+    }
 
     @Override
     public Configuration requestConfiguration() {

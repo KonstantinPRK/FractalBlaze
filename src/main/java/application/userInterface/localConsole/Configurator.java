@@ -1,6 +1,5 @@
 package application.userInterface.localConsole;
 
-import application.parameters.ImageFormat;
 import application.parameters.ImageSize;
 import application.renderer.Renderer;
 import application.transformation.Transformation;
@@ -49,7 +48,7 @@ public class Configurator {
         terminal.unformattedPrint("выберите формат изображения");
         terminal.printNumberedOptions(imageWriterCatalog.showCatalog());
         int userChoice = terminal.getUserInt(1, imageWriterCatalog.size());
-        String imageWriterName = imageWriterCatalog.showCatalog().get(userChoice);
+        String imageWriterName = imageWriterCatalog.showCatalog().get(userChoice - 1);
         return imageWriterCatalog.getAlgorithm(imageWriterName);
     }
 
@@ -90,17 +89,25 @@ public class Configurator {
     }
 
     public List<Transformation> requestTransformationsList() {
-        terminal.unformattedPrint("Введите количество трансформаций");
+        terminal.unformattedPrint(
+                "Введите количество преобразований с собственными параметрами"
+        );
+        terminal.unformattedPrint(
+                "Один вид преобразования можно использовать несколько раз"
+        );
 
-        int maximumTransformationCount = 10;
-        int transformationCount = terminal.getUserInt(1, maximumTransformationCount);
+        int maximumTransformationInstanceCount = 10;
+        int transformationCount = terminal.getUserInt(
+                1,
+                maximumTransformationInstanceCount
+        );
         List<Transformation> selectedTransformations = new ArrayList<>(transformationCount);
 
         for (int transformationNumber = 1;
-             transformationNumber <= transformationCount;
+            transformationNumber <= transformationCount;
              transformationNumber++) {
             terminal.unformattedPrint(
-                    "Выберите трансформацию №" + transformationNumber
+                    "Выберите вид преобразования №" + transformationNumber
             );
             terminal.printNumberedOptions(transformationCatalog.showCatalog());
 

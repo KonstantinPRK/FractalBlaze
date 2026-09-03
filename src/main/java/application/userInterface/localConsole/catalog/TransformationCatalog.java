@@ -1,11 +1,13 @@
 package application.userInterface.localConsole.catalog;
 
 import application.transformation.factory.TransformationFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class TransformationCatalog implements Catalog<TransformationFactory> {
     private final List<String> nameList;
     private final Map<String, TransformationFactory> transformationCatalog;

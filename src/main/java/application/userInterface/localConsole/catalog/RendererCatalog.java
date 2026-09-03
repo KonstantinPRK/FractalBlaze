@@ -1,11 +1,13 @@
 package application.userInterface.localConsole.catalog;
 
 import application.renderer.Renderer;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class RendererCatalog implements Catalog<Renderer> {
     private List<String> nameList;
     private Map<String, Renderer> rendererCatalog;

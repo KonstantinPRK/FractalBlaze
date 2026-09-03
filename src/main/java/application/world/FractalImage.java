@@ -53,6 +53,7 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
                     "Pixel outside image: " + pixelX + ", " + pixelY
             );
         }
+
         return pixelY * width() + pixelX;
     }
 }

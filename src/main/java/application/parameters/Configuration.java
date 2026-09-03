@@ -3,6 +3,7 @@ package application.parameters;
 import application.renderer.Renderer;
 import application.world.Magnifier;
 import application.transformation.Transformation;
+import application.world.Space;
 
 import javax.imageio.ImageWriter;
 import java.nio.file.Path;
@@ -12,7 +13,7 @@ public record Configuration(
         Path outputPath,
         ImageSize imageSize,
         ImageWriter imageWriter,
-        Magnifier magnifierZoom,
+        Space visibleSpace,
         Integer iterationCount,
         Integer randomSeed,
         Renderer renderer,

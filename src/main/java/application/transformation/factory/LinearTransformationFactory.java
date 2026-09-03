@@ -2,10 +2,12 @@ package application.transformation.factory;
 
 import application.transformation.LinearTransformation;
 import application.transformation.Transformation;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class LinearTransformationFactory implements TransformationFactory {
     private static final String SCALE = "scale";
     private static final String SHIFT_X = "shiftX";
