@@ -2,7 +2,9 @@ package application.localConsoleUI.terminal;
 
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class ConsolePanel {
@@ -42,12 +44,60 @@ public class ConsolePanel {
                 continue;
             }
 
-            if (userNumber >= min && userNumber <= max) {
-                return userNumber;
-            }
+            if (userNumber >= min && userNumber <= max)return userNumber;
 
             output.print("Ошибка: число вне указанного диапазона. Попробуйте снова: ");
         }
+    }
+
+    public int[] getUserIntArray(int min, int max) {
+        output.print("Введите номера через пробел, запятую или диапазоном, например 1-" + max + ": ");
+
+        while (true) {
+            try {
+                return parseUserIntArray(input.readLine(), min, max);
+            } catch (IllegalArgumentException exception) {
+                output.print("Ошибка: укажите номера от " + min + " до " + max + ", например 1 3 5 или 1-" + max + ": ");
+            }
+        }
+    }
+
+    private int[] parseUserIntArray(String enteredValue, int min, int max) {
+        if (enteredValue == null || enteredValue.isBlank())throw new IllegalArgumentException();
+
+        Set<Integer> selectedNumbers = new LinkedHashSet<>();
+        String[] selectionParts = enteredValue.trim().split("[,\\s]+");
+
+        for (String selectionPart : selectionParts) addSelectedNumbers(selectionPart, min, max, selectedNumbers);
+
+        int[] selectedNumberArray = new int[selectedNumbers.size()];
+        int selectedNumberIndex = 0;
+
+        for (int selectedNumber : selectedNumbers) selectedNumberArray[selectedNumberIndex++] = selectedNumber;
+
+        return selectedNumberArray;
+    }
+
+    private void addSelectedNumbers(String selectionPart, int min, int max, Set<Integer> selectedNumbers) {
+        if (!selectionPart.contains("-")) {
+            selectedNumbers.add(parseSelectedNumber(selectionPart, min, max));
+            return;
+        }
+
+        String[] rangeBorders = selectionPart.split("-", -1);
+        if (rangeBorders.length != 2)throw new IllegalArgumentException();
+
+        int rangeStart = parseSelectedNumber(rangeBorders[0], min, max);
+        int rangeEnd = parseSelectedNumber(rangeBorders[1], min, max);
+        if (rangeStart > rangeEnd)throw new IllegalArgumentException();
+
+        for (int selectedNumber = rangeStart; selectedNumber <= rangeEnd; selectedNumber++) selectedNumbers.add(selectedNumber);
+    }
+
+    private int parseSelectedNumber(String enteredNumber, int min, int max) {
+        int selectedNumber = Integer.parseInt(enteredNumber);
+        if (selectedNumber < min || selectedNumber > max)throw new IllegalArgumentException();
+        return selectedNumber;
     }
 
 

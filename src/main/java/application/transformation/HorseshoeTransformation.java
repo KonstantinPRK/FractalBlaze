@@ -9,18 +9,13 @@ public final class HorseshoeTransformation implements Transformation {
 
     @Override
     public Point apply(Point point) {
-        double radius = Math.sqrt(
-                point.x() * point.x() + point.y() * point.y()
-        ) + EPSILON;
+        double radius = Math.sqrt(point.x() * point.x() + point.y() * point.y()) + EPSILON;
 
-        return new Point(
-                (point.x() - point.y()) * (point.x() + point.y()) / radius,
-                2.0 * point.x() * point.y() / radius
-        );
+        return new Point((point.x() - point.y()) * (point.x() + point.y()) / radius, 2.0 * point.x() * point.y() / radius);
     }
 
     @Override
     public String getName() {
-        return "HORSESHOE";
+        return "HORSESHOE — изгибает точки в дуги, напоминающие подкову";
     }
 }

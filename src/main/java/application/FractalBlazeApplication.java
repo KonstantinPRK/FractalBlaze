@@ -18,11 +18,7 @@ public final class FractalBlazeApplication {
     private final List<ImageCorrector> imageCorrectors;
     private final ImageFileWriter imageFileWriter;
 
-    public FractalBlazeApplication(
-            ConsoleController userInterface,
-            List<ImageCorrector> imageCorrectors,
-            ImageFileWriter imageFileWriter
-    ) {
+    public FractalBlazeApplication(ConsoleController userInterface, List<ImageCorrector> imageCorrectors, ImageFileWriter imageFileWriter) {
         this.userInterface = userInterface;
         this.imageCorrectors = imageCorrectors;
         this.imageFileWriter = imageFileWriter;
@@ -36,27 +32,14 @@ public final class FractalBlazeApplication {
     public void start() {
         Configuration configuration = userInterface.requestConfiguration();
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
-        FractalImage renderedImage = configuration.renderer().render(
-                emptyCanvas,
-                configuration.visibleSpace(),
-                configuration.transformationParameters(),
-                configuration.transformations(),
-                configuration.iterationCount(),
-                configuration.randomSeed()
-        );
+        FractalImage renderedImage = configuration.renderer().render(emptyCanvas, configuration.visibleSpace(), configuration.transformationParameters(), configuration.transformations(), configuration.iterationCount(), configuration.randomSeed());
 
         for (ImageCorrector imageCorrector : imageCorrectors) {
             imageCorrector.process(renderedImage);
         }
 
-        ImageFile imageFile = imageFileWriter.create(
-                renderedImage,
-                configuration.imageWriter()
-        );
+        ImageFile imageFile = imageFileWriter.create(renderedImage, configuration.imageWriter());
 
-        userInterface.returnFractalImage(
-                imageFile,
-                configuration.outputPath()
-        );
+        userInterface.returnFractalImage(imageFile, configuration.outputPath());
     }
 }

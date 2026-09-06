@@ -16,28 +16,15 @@ public final class GammaCorrectionProcessor implements ImageCorrector {
             for (int pixelX = 0; pixelX < image.width(); pixelX++) {
                 Pixel currentPixel = image.pixel(pixelX, pixelY);
 
-                if (isBlack(currentPixel)) {
-                    continue;
-                }
+                if (isBlack(currentPixel))continue;
 
-                image.setPixel(
-                        pixelX,
-                        pixelY,
-                        new Pixel(
-                                applyGamma(currentPixel.red()),
-                                applyGamma(currentPixel.green()),
-                                applyGamma(currentPixel.blue()),
-                                currentPixel.hitCount()
-                        )
-                );
+                image.setPixel(pixelX, pixelY, new Pixel(applyGamma(currentPixel.red()), applyGamma(currentPixel.green()), applyGamma(currentPixel.blue()), currentPixel.hitCount()));
             }
         }
     }
 
     private boolean isBlack(Pixel pixel) {
-        return pixel.red() == 0
-                && pixel.green() == 0
-                && pixel.blue() == 0;
+        return pixel.red() == 0 && pixel.green() == 0 && pixel.blue() == 0;
     }
 
     private int applyGamma(int colorComponent) {

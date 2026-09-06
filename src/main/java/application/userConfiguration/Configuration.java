@@ -4,7 +4,7 @@ import application.userConfiguration.parameters.ImageSize;
 import application.renderer.Renderer;
 import application.picture.Space;
 import application.transformation.Transformation;
-import application.transformation.TransformationParameters;
+import application.userConfiguration.parameters.TransformationParameters;
 
 import javax.imageio.ImageWriter;
 import java.nio.file.Path;

@@ -4,7 +4,7 @@ import application.userConfiguration.Configuration;
 import application.userConfiguration.parameters.ImageSize;
 import application.renderer.Renderer;
 import application.transformation.Transformation;
-import application.transformation.TransformationParameters;
+import application.userConfiguration.parameters.TransformationParameters;
 import application.userConfiguration.algorithmsCatalog.Catalog;
 import application.picture.Point;
 import application.picture.Space;
@@ -24,12 +24,7 @@ public class ConfigurationReader {
     private final Catalog<Transformation> transformationCatalog;
     private final ConsolePanel consolePanel;
 
-    public ConfigurationReader(
-            Catalog<Renderer> rendererCatalog,
-            Catalog<ImageWriter> imageWriterCatalog,
-            Catalog<Transformation> transformationCatalog,
-            ConsolePanel consolePanel
-    ) {
+    public ConfigurationReader(Catalog<Renderer> rendererCatalog, Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel) {
         this.rendererCatalog = rendererCatalog;
         this.imageWriterCatalog = imageWriterCatalog;
         this.transformationCatalog = transformationCatalog;
@@ -44,21 +39,10 @@ public class ConfigurationReader {
         int iterationCount = requestIterationCount();
         int randomSeed = requestRandomSeed();
         Renderer renderer = requestRenderer();
-        TransformationParameters transformationParameters =
-                requestTransformationParameters();
+        TransformationParameters transformationParameters = requestTransformationParameters();
         List<Transformation> transformations = requestTransformationsList();
 
-        return new Configuration(
-                outputPath,
-                imageSize,
-                imageWriter,
-                space,
-                iterationCount,
-                randomSeed,
-                renderer,
-                transformationParameters,
-                transformations
-        );
+        return new Configuration(outputPath, imageSize, imageWriter, space, iterationCount, randomSeed, renderer, transformationParameters, transformations);
     }
 
 
@@ -92,13 +76,7 @@ public class ConfigurationReader {
         return new ImageSize(width, height);
     }
 
-    /*
-показ сообщения
-показ ограничений - примера, список типов
 
-запрос варианта - текст //пока не получим путь крутим цикл
-возврат варианта
- */
     private ImageWriter requestImageWriter() {
         consolePanel.printText("Выберите формат изображения: ");
 
@@ -111,13 +89,7 @@ public class ConfigurationReader {
         return imageWriterCatalog.getAlgorithm(selectedFormatName);
     }
 
-    /*
-показ сообщения
-показ ограничений - примера
-передача типа
-запрос размеров - текст //пока не получим размеров крутим цикл
-возврат размеров
- */
+
     private Space requestSpace() {
         consolePanel.printText("Выберите масштаб мира в %");
         int zoomPercentage = consolePanel.getUserInt(50, 200);
@@ -127,28 +99,20 @@ public class ConfigurationReader {
         double visibleWorldWidth = defaultVisibleWorldSize / zoomMultiplier;
         double visibleWorldHeight = defaultVisibleWorldSize / zoomMultiplier;
 
-        return new Space(
-                new Point(0, 0),
-                visibleWorldWidth,
-                visibleWorldHeight
-        );
+        return new Space(new Point(0, 0), visibleWorldWidth, visibleWorldHeight);
     }
 
-    /*
-показ сообщения
-показ ограничений - примера
-передача типа
-запрос размеров - текст //пока не получим размеров крутим цикл
-возврат размеров
-*/
+
+
     private Integer requestIterationCount() {
-        consolePanel.printText("Введите количество итераций: ");
-        return consolePanel.getUserInt(100_000, 10_000_000);
+        consolePanel.printText("Введите количество миллионов итераций: ");
+        int iterationCountInMillions = consolePanel.getUserInt(10, 50);
+        return iterationCountInMillions * 1_000_000;
     }
 
     private Integer requestRandomSeed() {
         consolePanel.printText("Введите начальное значение генератора случайных чисел: ");
-        return consolePanel.getUserInt(0, Integer.MAX_VALUE);
+        return consolePanel.getUserInt(0, 100);
     }
 
     private Renderer requestRenderer() {
@@ -163,12 +127,11 @@ public class ConfigurationReader {
         return rendererCatalog.getAlgorithm(selectedRendererName);
     }
 
-    private TransformationParameters requestTransformationParameters() {
-        consolePanel.printText(
-                "Введите общие параметры для всех преобразований. "
-        );
 
-        consolePanel.printText("Введите масштаб в процентах: ");
+    private TransformationParameters requestTransformationParameters() {
+        consolePanel.printText("Введите общие параметры для всех преобразований. ");
+
+        consolePanel.printText("Введите масштаб координат преобразований в процентах (100 — без изменения): ");
         int scalePercentage = consolePanel.getUserInt(10, 200);
 
         consolePanel.printText("Введите угол поворота в градусах: ");
@@ -180,17 +143,11 @@ public class ConfigurationReader {
         consolePanel.printText("Введите вертикальный сдвиг в сотых долях: ");
         int verticalShiftInHundredths = consolePanel.getUserInt(-200, 200);
 
-        return new TransformationParameters(
-                scalePercentage / 100.0,
-                Math.toRadians(rotationAngleInDegrees),
-                horizontalShiftInHundredths / 100.0,
-                verticalShiftInHundredths / 100.0
-        );
+        return new TransformationParameters(scalePercentage / 100.0, Math.toRadians(rotationAngleInDegrees), horizontalShiftInHundredths / 100.0, verticalShiftInHundredths / 100.0);
     }
 
     private List<Transformation> requestTransformationsList() {
-        List<String> selectedTransformationNames =
-                requestTransformationNames();
+        List<String> selectedTransformationNames = requestTransformationNames();
 
         return selectedTransformationNames.stream()
                 .map(transformationCatalog::getAlgorithm)
@@ -198,48 +155,16 @@ public class ConfigurationReader {
     }
 
     private List<String> requestTransformationNames() {
-        List<String> availableTransformationNames = new ArrayList<>(
-                transformationCatalog.showCatalog()
-        );
+        List<String> availableTransformationNames = transformationCatalog.showCatalog();
 
-        consolePanel.printText("Введите количество преобразований: ");
-        int transformationCount = consolePanel.getUserInt(
-                1,
-                availableTransformationNames.size()
-        );
+        consolePanel.printText("Выберите одно или несколько преобразований: ");
+        consolePanel.printNumberedOptions(availableTransformationNames);
+        int[] selectedOptionNumbers = consolePanel.getUserIntArray(1, availableTransformationNames.size());
 
-        List<String> selectedTransformationNames = new ArrayList<>(
-                transformationCount
-        );
-
-        for (int transformationNumber = 1;
-             transformationNumber <= transformationCount;
-             transformationNumber++) {
-            String selectedTransformationName = requestTransformationName(
-                    transformationNumber,
-                    availableTransformationNames
-            );
-            selectedTransformationNames.add(selectedTransformationName);
-        }
+        List<String> selectedTransformationNames = new ArrayList<>(selectedOptionNumbers.length);
+        for (int selectedOptionNumber : selectedOptionNumbers) selectedTransformationNames.add(availableTransformationNames.get(selectedOptionNumber - 1));
 
         return List.copyOf(selectedTransformationNames);
-    }
-
-    private String requestTransformationName(
-            int transformationNumber,
-            List<String> availableTransformationNames
-    ) {
-        consolePanel.printText(
-                "Выберите преобразование №" + transformationNumber + ": "
-        );
-        consolePanel.printNumberedOptions(availableTransformationNames);
-
-        int selectedOption = consolePanel.getUserInt(
-                1,
-                availableTransformationNames.size()
-        );
-
-        return availableTransformationNames.remove(selectedOption - 1);
     }
 
 }

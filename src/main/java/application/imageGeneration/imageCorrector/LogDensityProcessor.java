@@ -16,9 +16,7 @@ public final class LogDensityProcessor implements ImageCorrector {
             maxHitCount = Math.max(maxHitCount, pixel.hitCount());
         }
 
-        if (maxHitCount == 0) {
-            return;
-        }
+        if (maxHitCount == 0)return;
 
         double maxDensity = Math.log1p(maxHitCount);
 
@@ -26,12 +24,9 @@ public final class LogDensityProcessor implements ImageCorrector {
             for (int pixelX = 0; pixelX < image.width(); pixelX++) {
                 Pixel currentPixel = image.pixel(pixelX, pixelY);
 
-                if (currentPixel.hitCount() == 0) {
-                    continue;
-                }
+                if (currentPixel.hitCount() == 0)continue;
 
-                double relativeDensity =
-                        Math.log1p(currentPixel.hitCount()) / maxDensity;
+                double relativeDensity = Math.log1p(currentPixel.hitCount()) / maxDensity;
 
                 int correctedRed;
                 int correctedGreen;
@@ -43,44 +38,21 @@ public final class LogDensityProcessor implements ImageCorrector {
                     correctedGreen = brightness;
                     correctedBlue = brightness;
                 } else {
-                    correctedRed = scaleColorComponent(
-                            currentPixel.red(),
-                            relativeDensity
-                    );
-                    correctedGreen = scaleColorComponent(
-                            currentPixel.green(),
-                            relativeDensity
-                    );
-                    correctedBlue = scaleColorComponent(
-                            currentPixel.blue(),
-                            relativeDensity
-                    );
+                    correctedRed = scaleColorComponent(currentPixel.red(), relativeDensity);
+                    correctedGreen = scaleColorComponent(currentPixel.green(), relativeDensity);
+                    correctedBlue = scaleColorComponent(currentPixel.blue(), relativeDensity);
                 }
 
-                image.setPixel(
-                        pixelX,
-                        pixelY,
-                        new Pixel(
-                                correctedRed,
-                                correctedGreen,
-                                correctedBlue,
-                                currentPixel.hitCount()
-                        )
-                );
+                image.setPixel(pixelX, pixelY, new Pixel(correctedRed, correctedGreen, correctedBlue, currentPixel.hitCount()));
             }
         }
     }
 
     private boolean hasNoColor(Pixel pixel) {
-        return pixel.red() == 0
-                && pixel.green() == 0
-                && pixel.blue() == 0;
+        return pixel.red() == 0 && pixel.green() == 0 && pixel.blue() == 0;
     }
 
-    private int scaleColorComponent(
-            int colorComponent,
-            double relativeDensity
-    ) {
+    private int scaleColorComponent(int colorComponent, double relativeDensity) {
         return (int) Math.round(colorComponent * relativeDensity);
     }
 }

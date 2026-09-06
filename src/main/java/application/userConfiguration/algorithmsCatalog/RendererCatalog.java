@@ -12,7 +12,7 @@ public class RendererCatalog implements Catalog<Renderer> {
     private List<String> nameList;
     private Map<String, Renderer> rendererCatalog;
 
-    public RendererCatalog(List<Renderer> renderers){
+    public RendererCatalog(List<Renderer> renderers) {
         rendererCatalog = renderers.stream()
                 .collect(
                         Collectors.toMap(

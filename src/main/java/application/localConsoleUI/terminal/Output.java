@@ -24,6 +24,6 @@ public class Output {
 
 
     public void printEmptyLine(int count) {
-        for(int i = 0; i < count; i++) printer.println();
+        for (int i = 0; i < count; i++) printer.println();
     }
 }

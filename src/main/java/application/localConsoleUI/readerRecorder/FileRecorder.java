@@ -20,20 +20,10 @@ public class FileRecorder {
         this.consolePanel = consolePanel;
     }
 
-    public Path returnFractalImage(
-            ImageFile imageFile,
-            Path outputDirectory
-    ) {
-        Path normalizedOutputDirectory = outputDirectory
-                .toAbsolutePath()
-                .normalize();
-        String fileName = IMAGE_FILE_NAME
-                + "."
-                + imageFile.fileExtension();
-        Path outputFile = findAvailableOutputFile(
-                normalizedOutputDirectory,
-                fileName
-        );
+    public Path returnFractalImage(ImageFile imageFile, Path outputDirectory) {
+        Path normalizedOutputDirectory = outputDirectory.toAbsolutePath().normalize();
+        String fileName = IMAGE_FILE_NAME + "." + imageFile.fileExtension();
+        Path outputFile = findAvailableOutputFile(normalizedOutputDirectory, fileName);
 
         saveFile(imageFile, normalizedOutputDirectory, outputFile);
         consolePanel.printText("Изображение сохранено в " + outputFile);
@@ -41,15 +31,10 @@ public class FileRecorder {
         return outputFile;
     }
 
-    private Path findAvailableOutputFile(
-            Path outputDirectory,
-            String fileName
-    ) {
+    private Path findAvailableOutputFile(Path outputDirectory, String fileName) {
         Path requestedOutputFile = outputDirectory.resolve(fileName);
 
-        if (!Files.exists(requestedOutputFile)) {
-            return requestedOutputFile;
-        }
+        if (!Files.exists(requestedOutputFile))return requestedOutputFile;
 
         int extensionStart = fileName.lastIndexOf('.');
         String nameWithoutExtension = fileName.substring(0, extensionStart);
@@ -58,32 +43,19 @@ public class FileRecorder {
 
         Path availableOutputFile;
         do {
-            availableOutputFile = outputDirectory.resolve(
-                    nameWithoutExtension + "-" + fileNumber + extension
-            );
+            availableOutputFile = outputDirectory.resolve(nameWithoutExtension + "-" + fileNumber + extension);
             fileNumber++;
         } while (Files.exists(availableOutputFile));
 
         return availableOutputFile;
     }
 
-    private void saveFile(
-            ImageFile imageFile,
-            Path outputDirectory,
-            Path outputFile
-    ) {
+    private void saveFile(ImageFile imageFile, Path outputDirectory, Path outputFile) {
         try {
             Files.createDirectories(outputDirectory);
-            Files.write(
-                    outputFile,
-                    imageFile.content(),
-                    StandardOpenOption.CREATE_NEW
-            );
+            Files.write(outputFile, imageFile.content(), StandardOpenOption.CREATE_NEW);
         } catch (IOException exception) {
-            throw new UncheckedIOException(
-                    "Не удалось сохранить файл: " + outputFile,
-                    exception
-            );
+            throw new UncheckedIOException("Не удалось сохранить файл: " + outputFile, exception);
         }
     }
 }

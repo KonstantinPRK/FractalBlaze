@@ -19,7 +19,7 @@ public class Input {
     public Integer readInt() {
         String enteredValue = readLine();
 
-        if (enteredValue == null) return null;
+        if (enteredValue == null)return null;
 
         try {
             return Integer.valueOf(enteredValue.trim());

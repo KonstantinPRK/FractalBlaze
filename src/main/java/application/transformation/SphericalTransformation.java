@@ -9,18 +9,13 @@ public final class SphericalTransformation implements Transformation {
 
     @Override
     public Point apply(Point point) {
-        double squaredRadius = point.x() * point.x()
-                + point.y() * point.y()
-                + EPSILON;
+        double squaredRadius = point.x() * point.x() + point.y() * point.y() + EPSILON;
 
-        return new Point(
-                point.x() / squaredRadius,
-                point.y() / squaredRadius
-        );
+        return new Point(point.x() / squaredRadius, point.y() / squaredRadius);
     }
 
     @Override
     public String getName() {
-        return "SPHERICAL";
+        return "SPHERICAL — выворачивает пространство относительно его центра";
     }
 }

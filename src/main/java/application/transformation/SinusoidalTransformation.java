@@ -7,14 +7,11 @@ import org.springframework.stereotype.Component;
 public final class SinusoidalTransformation implements Transformation {
     @Override
     public Point apply(Point point) {
-        return new Point(
-                Math.sin(point.x()),
-                Math.sin(point.y())
-        );
+        return new Point(Math.sin(point.x()), Math.sin(point.y()));
     }
 
     @Override
     public String getName() {
-        return "SINUSOIDAL";
+        return "SINUSOIDAL — преобразует координаты в плавные синусоидальные волны";
     }
 }

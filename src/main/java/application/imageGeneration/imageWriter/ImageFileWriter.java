@@ -16,47 +16,24 @@ import java.util.Objects;
 
 @Component
 public final class ImageFileWriter {
-    public ImageFile create(
-            FractalImage fractalImage,
-            ImageWriter selectedImageWriter
-    ) {
-        Objects.requireNonNull(
-                fractalImage,
-                "Fractal image must not be null"
-        );
-        Objects.requireNonNull(
-                selectedImageWriter,
-                "Image writer must not be null"
-        );
+    public ImageFile create(FractalImage fractalImage, ImageWriter selectedImageWriter) {
+        Objects.requireNonNull(fractalImage, "Fractal image must not be null");
+        Objects.requireNonNull(selectedImageWriter, "Image writer must not be null");
 
         BufferedImage bufferedImage = convertToBufferedImage(fractalImage);
-        byte[] imageFileContent = encodeImage(
-                bufferedImage,
-                selectedImageWriter
-        );
-        String fileExtension = selectedImageWriter
-                .getOriginatingProvider()
-                .getFileSuffixes()[0]
-                .toLowerCase(Locale.ROOT);
+        byte[] imageFileContent = encodeImage(bufferedImage, selectedImageWriter);
+        String fileExtension = selectedImageWriter.getOriginatingProvider().getFileSuffixes()[0].toLowerCase(Locale.ROOT);
 
         return new ImageFile(imageFileContent, fileExtension);
     }
 
     private BufferedImage convertToBufferedImage(FractalImage fractalImage) {
-        BufferedImage bufferedImage = new BufferedImage(
-                fractalImage.width(),
-                fractalImage.height(),
-                BufferedImage.TYPE_INT_RGB
-        );
+        BufferedImage bufferedImage = new BufferedImage(fractalImage.width(), fractalImage.height(), BufferedImage.TYPE_INT_RGB);
 
         for (int pixelY = 0; pixelY < fractalImage.height(); pixelY++) {
             for (int pixelX = 0; pixelX < fractalImage.width(); pixelX++) {
                 Pixel pixel = fractalImage.pixel(pixelX, pixelY);
-                bufferedImage.setRGB(
-                        pixelX,
-                        pixelY,
-                        convertToRgb(pixel)
-                );
+                bufferedImage.setRGB(pixelX, pixelY, convertToRgb(pixel));
             }
         }
 
@@ -75,23 +52,15 @@ public final class ImageFileWriter {
         return Math.max(0, Math.min(255, colorValue));
     }
 
-    private byte[] encodeImage(
-            BufferedImage bufferedImage,
-            ImageWriter selectedImageWriter
-    ) {
-        try (ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
-             ImageOutputStream imageOutputStream =
-                     ImageIO.createImageOutputStream(imageBytes)) {
+    private byte[] encodeImage(BufferedImage bufferedImage, ImageWriter selectedImageWriter) {
+        try (ByteArrayOutputStream imageBytes = new ByteArrayOutputStream(); ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(imageBytes)) {
             selectedImageWriter.setOutput(imageOutputStream);
             selectedImageWriter.write(bufferedImage);
             imageOutputStream.flush();
 
             return imageBytes.toByteArray();
         } catch (IOException exception) {
-            throw new UncheckedIOException(
-                    "Failed to create image file",
-                    exception
-            );
+            throw new UncheckedIOException("Failed to create image file", exception);
         } finally {
             selectedImageWriter.reset();
         }

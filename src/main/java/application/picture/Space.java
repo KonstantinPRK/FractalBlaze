@@ -12,7 +12,7 @@ public record Space(Point focusPoint, double visibleWorldWidth, double visibleWo
 
         double topBorder = focusPoint.y() + visibleWorldHeight / 2;
 
-        return     point.x() >= leftBorder
+        return point.x() >= leftBorder
                 && point.x() < rightBorder
                 && point.y() >= bottomBorder
                 && point.y() < topBorder;

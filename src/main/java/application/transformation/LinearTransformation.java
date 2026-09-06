@@ -12,6 +12,6 @@ public final class LinearTransformation implements Transformation {
 
     @Override
     public String getName() {
-        return "LINEAR";
+        return "LINEAR — не искривляет точку после масштаба, поворота и сдвига";
     }
 }

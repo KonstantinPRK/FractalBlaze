@@ -24,8 +24,10 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
     }
 
     public boolean contains(int pixelX, int pixelY) {
-        return pixelX >= 0 && pixelX < width()
-                && pixelY >= 0 && pixelY < height();
+        return pixelX >= 0
+                && pixelX < width()
+                && pixelY >= 0
+                && pixelY < height();
     }
 
     public Pixel pixel(int pixelX, int pixelY) {
@@ -46,27 +48,7 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
         int incomingGreen = packedColor >> 8 & 0xFF;
         int incomingBlue = packedColor & 0xFF;
 
-        data[pixelIndex] = new Pixel(
-                blendColorComponent(
-                        currentPixel.red(),
-                        currentHitCount,
-                        incomingRed,
-                        updatedHitCount
-                ),
-                blendColorComponent(
-                        currentPixel.green(),
-                        currentHitCount,
-                        incomingGreen,
-                        updatedHitCount
-                ),
-                blendColorComponent(
-                        currentPixel.blue(),
-                        currentHitCount,
-                        incomingBlue,
-                        updatedHitCount
-                ),
-                updatedHitCount
-        );
+        data[pixelIndex] = new Pixel(blendColorComponent(currentPixel.red(), currentHitCount, incomingRed, updatedHitCount), blendColorComponent(currentPixel.green(), currentHitCount, incomingGreen, updatedHitCount), blendColorComponent(currentPixel.blue(), currentHitCount, incomingBlue, updatedHitCount), updatedHitCount);
     }
 
     public void setPixel(int pixelX, int pixelY, Pixel pixel) {
@@ -74,23 +56,13 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
     }
 
     private int pixelIndex(int pixelX, int pixelY) {
-        if (!contains(pixelX, pixelY)) {
-            throw new IndexOutOfBoundsException(
-                    "Pixel outside image: " + pixelX + ", " + pixelY
-            );
-        }
+        if (!contains(pixelX, pixelY))throw new IndexOutOfBoundsException("Pixel outside image: " + pixelX + ", " + pixelY);
 
         return pixelY * width() + pixelX;
     }
 
-    private int blendColorComponent(
-            int currentColorComponent,
-            int currentHitCount,
-            int incomingColorComponent,
-            int updatedHitCount
-    ) {
-        long accumulatedColor = (long) currentColorComponent * currentHitCount
-                + incomingColorComponent;
+    private int blendColorComponent(int currentColorComponent, int currentHitCount, int incomingColorComponent, int updatedHitCount) {
+        long accumulatedColor = (long) currentColorComponent * currentHitCount + incomingColorComponent;
 
         return (int) (accumulatedColor / updatedHitCount);
     }
