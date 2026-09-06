@@ -4,14 +4,17 @@ import application.picture.Point;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class LinearTransformation implements Transformation {
+public final class SinusoidalTransformation implements Transformation {
     @Override
     public Point apply(Point point) {
-        return point;
+        return new Point(
+                Math.sin(point.x()),
+                Math.sin(point.y())
+        );
     }
 
     @Override
     public String getName() {
-        return "LINEAR";
+        return "SINUSOIDAL";
     }
 }

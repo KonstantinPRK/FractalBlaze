@@ -1,28 +1,31 @@
 package application;
 
-import application.imageCorrector.ImageCorrector;
-import application.parameters.Configuration;
-import application.userInterface.ImageFileWriter;
-import application.userInterface.UserInterface;
-import application.world.FractalImage;
+import application.imageGeneration.imageCorrector.ImageCorrector;
+import application.userConfiguration.Configuration;
+import application.imageGeneration.imageWriter.ImageFile;
+import application.imageGeneration.imageWriter.ImageFileWriter;
+import application.localConsoleUI.ConsoleController;
+import application.picture.FractalImage;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.nio.file.Path;
 import java.util.List;
 
 @SpringBootApplication
 public final class FractalBlazeApplication {
-    private final UserInterface userInterface;
+    private final ConsoleController userInterface;
     private final List<ImageCorrector> imageCorrectors;
+    private final ImageFileWriter imageFileWriter;
 
     public FractalBlazeApplication(
-            UserInterface userInterface,
-            List<ImageCorrector> imageCorrectors
+            ConsoleController userInterface,
+            List<ImageCorrector> imageCorrectors,
+            ImageFileWriter imageFileWriter
     ) {
         this.userInterface = userInterface;
         this.imageCorrectors = imageCorrectors;
+        this.imageFileWriter = imageFileWriter;
     }
 
     public static void main(String[] args) {
@@ -36,6 +39,7 @@ public final class FractalBlazeApplication {
         FractalImage renderedImage = configuration.renderer().render(
                 emptyCanvas,
                 configuration.visibleSpace(),
+                configuration.transformationParameters(),
                 configuration.transformations(),
                 configuration.iterationCount(),
                 configuration.randomSeed()
@@ -45,11 +49,14 @@ public final class FractalBlazeApplication {
             imageCorrector.process(renderedImage);
         }
 
-        ImageFileWriter imageWriter = new ImageFileWriter();
-        Path savedImagePath = imageWriter.write(renderedImage, configuration.outputPath(), configuration.imageWriter());
+        ImageFile imageFile = imageFileWriter.create(
+                renderedImage,
+                configuration.imageWriter()
+        );
 
-        userInterface.returnFractalImage(savedImagePath);
+        userInterface.returnFractalImage(
+                imageFile,
+                configuration.outputPath()
+        );
     }
 }
-
-
