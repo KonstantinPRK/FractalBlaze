@@ -1,4 +1,4 @@
-package application.imageGeneration.imageCorrector;
+package application.imageGeneration.imageCorrector.correctionSteps;
 
 import application.picture.FractalImage;
 import application.picture.Pixel;
@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(3)
-public final class GammaCorrectionProcessor implements ImageCorrector {
+public final class GammaCorrectionStep implements ImageCorrectionStep {
     private static final double GAMMA = 2.2;
 
     @Override
-    public void process(FractalImage image) {
+    public void applyCorrection(FractalImage image) {
         for (int pixelY = 0; pixelY < image.height(); pixelY++) {
             for (int pixelX = 0; pixelX < image.width(); pixelX++) {
                 Pixel currentPixel = image.pixel(pixelX, pixelY);

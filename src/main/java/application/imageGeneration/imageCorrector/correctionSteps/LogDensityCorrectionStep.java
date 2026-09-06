@@ -1,4 +1,4 @@
-package application.imageGeneration.imageCorrector;
+package application.imageGeneration.imageCorrector.correctionSteps;
 
 import application.picture.FractalImage;
 import application.picture.Pixel;
@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(1)
-public final class LogDensityProcessor implements ImageCorrector {
+public final class LogDensityCorrectionStep implements ImageCorrectionStep {
     @Override
-    public void process(FractalImage image) {
+    public void applyCorrection(FractalImage image) {
         int maxHitCount = 0;
 
         for (Pixel pixel : image.data()) {

@@ -1,5 +1,6 @@
 package application;
 
+
 import application.imageGeneration.imageCorrector.ImageCorrector;
 import application.userConfiguration.Configuration;
 import application.imageGeneration.imageWriter.ImageFile;
@@ -15,12 +16,12 @@ import java.util.List;
 @SpringBootApplication
 public final class FractalBlazeApplication {
     private final ConsoleController userInterface;
-    private final List<ImageCorrector> imageCorrectors;
+    private final ImageCorrector imageCorrector;
     private final ImageFileWriter imageFileWriter;
 
-    public FractalBlazeApplication(ConsoleController userInterface, List<ImageCorrector> imageCorrectors, ImageFileWriter imageFileWriter) {
+    public FractalBlazeApplication(ConsoleController userInterface, ImageCorrector imageCorrector, ImageFileWriter imageFileWriter) {
         this.userInterface = userInterface;
-        this.imageCorrectors = imageCorrectors;
+        this.imageCorrector = imageCorrector;
         this.imageFileWriter = imageFileWriter;
     }
 
@@ -33,10 +34,7 @@ public final class FractalBlazeApplication {
         Configuration configuration = userInterface.requestConfiguration();
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
         FractalImage renderedImage = configuration.renderer().render(emptyCanvas, configuration.visibleSpace(), configuration.transformationParameters(), configuration.transformations(), configuration.iterationCount(), configuration.randomSeed());
-
-        for (ImageCorrector imageCorrector : imageCorrectors) {
-            imageCorrector.process(renderedImage);
-        }
+        FractalImage correctedImage = imageCorrector.applyCorrection(renderedImage);
 
         ImageFile imageFile = imageFileWriter.create(renderedImage, configuration.imageWriter());
 

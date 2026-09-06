@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class RendererCatalog implements Catalog<Renderer> {
-    private List<String> nameList;
-    private Map<String, Renderer> rendererCatalog;
+    private final List<String> nameList;
+    private final Map<String, Renderer> rendererCatalog;
 
     public RendererCatalog(List<Renderer> renderers) {
         rendererCatalog = renderers.stream()

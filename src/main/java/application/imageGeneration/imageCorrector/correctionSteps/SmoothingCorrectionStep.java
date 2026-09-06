@@ -1,4 +1,4 @@
-package application.imageGeneration.imageCorrector;
+package application.imageGeneration.imageCorrector.correctionSteps;
 
 import application.picture.FractalImage;
 import application.picture.Pixel;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(2)
-public final class SmoothingProcessor implements ImageCorrector {
+public final class SmoothingCorrectionStep implements ImageCorrectionStep {
     private static final int[][] GAUSSIAN_KERNEL = {
             {1, 2, 1},
             {2, 4, 2},
@@ -16,7 +16,7 @@ public final class SmoothingProcessor implements ImageCorrector {
     private static final int KERNEL_RADIUS = 1;
 
     @Override
-    public void process(FractalImage image) {
+    public void applyCorrection(FractalImage image) {
         Pixel[] sourcePixels = image.data().clone();
 
         for (int pixelY = 0; pixelY < image.height(); pixelY++) {

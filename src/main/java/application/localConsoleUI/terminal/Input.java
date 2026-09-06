@@ -8,11 +8,7 @@ import java.util.Scanner;
 public class Input {
     private final Scanner scanner;
 
-    public Input() {
-        this(new Scanner(System.in));
-    }
-
-    Input(Scanner scanner) {
+    public Input(Scanner scanner) {
         this.scanner = scanner;
     }
 

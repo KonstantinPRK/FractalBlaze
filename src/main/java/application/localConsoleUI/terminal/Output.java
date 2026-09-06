@@ -8,10 +8,6 @@ import java.io.PrintStream;
 public class Output {
     private final PrintStream printer;
 
-    public Output() {
-        this(System.out);
-    }
-
     public Output(PrintStream printer) {
         this.printer = printer;
     }

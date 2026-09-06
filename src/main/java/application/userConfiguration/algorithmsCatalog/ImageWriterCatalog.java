@@ -3,31 +3,19 @@ package application.userConfiguration.algorithmsCatalog;
 import application.userConfiguration.parameters.ImageFormat;
 import org.springframework.stereotype.Component;
 
-import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class ImageWriterCatalog implements Catalog<ImageWriter> {
     private final List<String> nameList;
     private final Map<String, ImageWriter> imageWriterCatalog;
 
-    public ImageWriterCatalog() {
-        this(List.of(ImageFormat.values()));
-    }
-
-    public ImageWriterCatalog(List<ImageFormat> formats) {
-        imageWriterCatalog = formats.stream()
-                .collect(Collectors.toUnmodifiableMap(
-                        ImageFormat::name,
-                        imageFormat -> ImageIO
-                                .getImageWritersByFormatName(imageFormat.name())
-                                .next()
-                ));
-
-        nameList = formats.stream()
+    public ImageWriterCatalog(Map<String, ImageWriter> imageWriters) {
+        imageWriterCatalog = Map.copyOf(imageWriters);
+        nameList = Arrays.stream(ImageFormat.values())
                 .map(ImageFormat::name)
                 .toList();
     }
