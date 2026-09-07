@@ -1,15 +1,20 @@
 package application.transformation;
 
+import application.core.settings.TransformationCalculationSettings;
 import application.picture.Point;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class SphericalTransformation implements Transformation {
-    private static final double EPSILON = 1.0e-6;
+    private final TransformationCalculationSettings settings;
+
+    public SphericalTransformation(TransformationCalculationSettings settings) {
+        this.settings = settings;
+    }
 
     @Override
     public Point apply(Point point) {
-        double squaredRadius = point.x() * point.x() + point.y() * point.y() + EPSILON;
+        double squaredRadius = point.x() * point.x() + point.y() * point.y() + settings.epsilon();
 
         return new Point(point.x() / squaredRadius, point.y() / squaredRadius);
     }

@@ -1,5 +1,6 @@
 package application.renderer;
 
+import application.core.settings.SingleThreadRendererSettings;
 import application.picture.FractalImage;
 import application.picture.Point;
 import application.picture.Space;
@@ -13,8 +14,11 @@ import java.util.SplittableRandom;
 
 @Component
 public class SingleThreadRenderer implements Renderer {
-    private static final int BURN_IN = 20;
-    private static final int ITERATIONS_PER_TRAJECTORY = 10_000;
+    private final SingleThreadRendererSettings settings;
+
+    public SingleThreadRenderer(SingleThreadRendererSettings settings) {
+        this.settings = settings;
+    }
 
     @Override
     public FractalImage render(FractalImage emptyCanvas, Space space, TransformationParameters transformationParameters, List<Transformation> transformations, int iterationCount, long randomSeed) {
@@ -23,8 +27,8 @@ public class SingleThreadRenderer implements Renderer {
         double rotationCosine = Math.cos(transformationParameters.rotationAngleInRadians());
         double rotationSine = Math.sin(transformationParameters.rotationAngleInRadians());
 
-        for (int firstIteration = 0; firstIteration < iterationCount; firstIteration += ITERATIONS_PER_TRAJECTORY) {
-            int iterationsInCurrentTrajectory = Math.min(ITERATIONS_PER_TRAJECTORY, iterationCount - firstIteration);
+        for (int firstIteration = 0; firstIteration < iterationCount; firstIteration += settings.iterationsPerTrajectory()) {
+            int iterationsInCurrentTrajectory = Math.min(settings.iterationsPerTrajectory(), iterationCount - firstIteration);
 
             TrajectoryState trajectory = warmUpTrajectory(createRandomPoint(space, random), transformations, transformationColors, transformationParameters, rotationCosine, rotationSine, random);
             Point currentPoint = trajectory.point();
@@ -71,7 +75,7 @@ public class SingleThreadRenderer implements Renderer {
         Point currentPoint = startingPoint;
         int currentColor = 0;
 
-        for (int warmUpIteration = 0; warmUpIteration < BURN_IN; warmUpIteration++) {
+        for (int warmUpIteration = 0; warmUpIteration < settings.burnIn(); warmUpIteration++) {
             int transformationIndex = random.nextInt(transformations.size());
             Transformation selectedTransformation = transformations.get(transformationIndex);
             currentPoint = applyTransformation(currentPoint, selectedTransformation, transformationParameters, rotationCosine, rotationSine);
@@ -101,7 +105,7 @@ public class SingleThreadRenderer implements Renderer {
 
         for (int transformationIndex = 0; transformationIndex < transformationCount; transformationIndex++) {
             float hue = (float) (startingHue + (double) transformationIndex / transformationCount);
-            Color color = Color.getHSBColor(hue % 1.0f, 0.85f, 1.0f);
+            Color color = Color.getHSBColor(hue % 1.0f, settings.colorSaturation(), settings.colorBrightness());
             transformationColors[transformationIndex] = color.getRGB() & 0x00FFFFFF;
         }
 

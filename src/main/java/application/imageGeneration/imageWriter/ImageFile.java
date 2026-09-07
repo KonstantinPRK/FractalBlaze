@@ -1,6 +1,3 @@
 package application.imageGeneration.imageWriter;
 
-public record ImageFile(
-        byte[] content,
-        String fileExtension
-) {}
+public record ImageFile(byte[] content, String fileExtension) {}

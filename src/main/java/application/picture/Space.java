@@ -1,6 +1,9 @@
 package application.picture;
 
-public record Space(Point focusPoint, double visibleWorldWidth, double visibleWorldHeight) {
+public record Space(
+        Point focusPoint,
+        double visibleWorldWidth,
+        double visibleWorldHeight) {
 
 
     public boolean contains(Point point) {

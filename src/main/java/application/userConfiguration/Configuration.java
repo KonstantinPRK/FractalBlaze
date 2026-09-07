@@ -19,5 +19,4 @@ public record Configuration(
         Integer randomSeed,
         Renderer renderer,
         TransformationParameters transformationParameters,
-        List<Transformation> transformations
-) {}
+        List<Transformation> transformations) {}

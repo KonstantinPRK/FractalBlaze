@@ -1,20 +1,22 @@
 package application.imageGeneration.imageCorrector.correctors;
 
-
 import application.imageGeneration.imageCorrector.correctionSteps.ImageCorrectionStep;
 import application.picture.FractalImage;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-public class SequentialImagePostCorrector implements ImagePostCorrector {
+@Component
+public final class SequentialImagePostCorrector implements ImagePostCorrector {
     private final List<ImageCorrectionStep> correctorSteps;
 
     public SequentialImagePostCorrector(List<ImageCorrectionStep> correctorSteps) {
-        this.correctorSteps = correctorSteps;
+        this.correctorSteps = List.copyOf(correctorSteps);
     }
 
     @Override
     public FractalImage applyCorrection(FractalImage rawImage) {
-        return null;
+        for (ImageCorrectionStep correctorStep : correctorSteps) correctorStep.applyCorrection(rawImage);
+        return rawImage;
     }
 }

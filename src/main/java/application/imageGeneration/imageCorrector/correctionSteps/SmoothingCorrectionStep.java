@@ -1,5 +1,6 @@
 package application.imageGeneration.imageCorrector.correctionSteps;
 
+import application.core.settings.SmoothingSettings;
 import application.picture.FractalImage;
 import application.picture.Pixel;
 import org.springframework.core.annotation.Order;
@@ -13,7 +14,12 @@ public final class SmoothingCorrectionStep implements ImageCorrectionStep {
             {2, 4, 2},
             {1, 2, 1}
     };
-    private static final int KERNEL_RADIUS = 1;
+
+    private final int kernelRadius;
+
+    public SmoothingCorrectionStep(SmoothingSettings settings) {
+        kernelRadius = settings.kernelRadius();
+    }
 
     @Override
     public void applyCorrection(FractalImage image) {
@@ -33,14 +39,14 @@ public final class SmoothingCorrectionStep implements ImageCorrectionStep {
         int blueSum = 0;
         int appliedWeightSum = 0;
 
-        for (int verticalOffset = -KERNEL_RADIUS; verticalOffset <= KERNEL_RADIUS; verticalOffset++) {
-            for (int horizontalOffset = -KERNEL_RADIUS; horizontalOffset <= KERNEL_RADIUS; horizontalOffset++) {
+        for (int verticalOffset = -kernelRadius; verticalOffset <= kernelRadius; verticalOffset++) {
+            for (int horizontalOffset = -kernelRadius; horizontalOffset <= kernelRadius; horizontalOffset++) {
                 int neighborPixelX = centerPixelX + horizontalOffset;
                 int neighborPixelY = centerPixelY + verticalOffset;
 
                 if (!image.contains(neighborPixelX, neighborPixelY))continue;
 
-                int kernelWeight = GAUSSIAN_KERNEL[verticalOffset + KERNEL_RADIUS][horizontalOffset + KERNEL_RADIUS];
+                int kernelWeight = GAUSSIAN_KERNEL[verticalOffset + kernelRadius][horizontalOffset + kernelRadius];
                 Pixel neighborPixel = sourcePixels[neighborPixelY * image.width() + neighborPixelX];
 
                 redSum += neighborPixel.red() * kernelWeight;

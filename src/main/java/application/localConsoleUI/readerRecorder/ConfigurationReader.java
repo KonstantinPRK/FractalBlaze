@@ -1,20 +1,21 @@
 package application.localConsoleUI.readerRecorder;
 
-import application.userConfiguration.Configuration;
-import application.userConfiguration.parameters.ImageSize;
+import application.core.restrictions.GenerationInputRestrictions;
+import application.core.restrictions.ImageSizeRestrictions;
+import application.core.restrictions.TransformationInputRestrictions;
+import application.core.settings.GenerationSettings;
+import application.localConsoleUI.consolePanel.ConsolePanel;
+import application.picture.Space;
 import application.renderer.Renderer;
 import application.transformation.Transformation;
-import application.userConfiguration.parameters.TransformationParameters;
+import application.userConfiguration.Configuration;
 import application.userConfiguration.algorithmsCatalog.Catalog;
-import application.picture.Point;
-import application.picture.Space;
-import application.localConsoleUI.terminal.ConsolePanel;
+import application.userConfiguration.parameters.ImageSize;
+import application.userConfiguration.parameters.TransformationParameters;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageWriter;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -23,12 +24,20 @@ public class ConfigurationReader {
     private final Catalog<ImageWriter> imageWriterCatalog;
     private final Catalog<Transformation> transformationCatalog;
     private final ConsolePanel consolePanel;
+    private final ImageSizeRestrictions imageSizeRestrictions;
+    private final GenerationInputRestrictions generationInputRestrictions;
+    private final TransformationInputRestrictions transformationInputRestrictions;
+    private final GenerationSettings generationSettings;
 
-    public ConfigurationReader(Catalog<Renderer> rendererCatalog, Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel) {
+    public ConfigurationReader(Catalog<Renderer> rendererCatalog, Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
         this.rendererCatalog = rendererCatalog;
         this.imageWriterCatalog = imageWriterCatalog;
         this.transformationCatalog = transformationCatalog;
         this.consolePanel = consolePanel;
+        this.imageSizeRestrictions = imageSizeRestrictions;
+        this.generationInputRestrictions = generationInputRestrictions;
+        this.transformationInputRestrictions = transformationInputRestrictions;
+        this.generationSettings = generationSettings;
     }
 
     public Configuration requestConfiguration() {
@@ -45,103 +54,56 @@ public class ConfigurationReader {
         return new Configuration(outputPath, imageSize, imageWriter, space, iterationCount, randomSeed, renderer, transformationParameters, transformations);
     }
 
-
     private Path requestOutputPath() {
-        while (true) {
-            try {
-                consolePanel.printText("Введите путь получения файла: ");
-                consolePanel.printText("пример: " + Path.of(System.getProperty("user.home"), "Downloads"));
-
-                String outputPath = consolePanel.getUserString();
-                return Path.of(outputPath).toAbsolutePath().normalize();
-            } catch (InvalidPathException exception) {
-                consolePanel.printText("Не удалось распознать путь, попробуйте снова. ");
-            }
-        }
+        String examplePath = Path.of(System.getProperty("user.home"), "Downloads").toString();
+        return consolePanel.requestPath("Введите путь сохранения изображения", examplePath);
     }
 
-
-
     private ImageSize requestImageSize() {
-        consolePanel.printText("Определите размер изображения. ");
-
-        consolePanel.printText("Введите ширину: ");
-        consolePanel.printText("пример: 1920");
-        int width = consolePanel.getUserInt(ImageSize.minSize(), ImageSize.maxSize());
-
-        consolePanel.printText("Введите высоту: ");
-        consolePanel.printText("пример: 1280");
-        int height = consolePanel.getUserInt(ImageSize.minSize(), ImageSize.maxSize());
+        int width = consolePanel.requestInt("Введите ширину изображения", "1920", imageSizeRestrictions.width());
+        int height = consolePanel.requestInt("Введите высоту изображения", "1280", imageSizeRestrictions.height());
 
         return new ImageSize(width, height);
     }
 
-
     private ImageWriter requestImageWriter() {
-        consolePanel.printText("Выберите формат изображения: ");
-
         List<String> formatNames = imageWriterCatalog.showCatalog();
-        consolePanel.printNumberedOptions(formatNames);
-
-        int selectedOption = consolePanel.getUserInt(1, formatNames.size());
-        String selectedFormatName = formatNames.get(selectedOption - 1);
+        String selectedFormatName = consolePanel.requestOption("Выберите формат изображения", formatNames);
 
         return imageWriterCatalog.getAlgorithm(selectedFormatName);
     }
 
-
     private Space requestSpace() {
-        consolePanel.printText("Выберите масштаб мира в %");
-        int zoomPercentage = consolePanel.getUserInt(50, 200);
+        int zoomPercentage = consolePanel.requestInt("Введите масштаб видимой области мира в процентах", "100", generationInputRestrictions.worldZoomPercentage());
 
-        double defaultVisibleWorldSize = 2.0;
         double zoomMultiplier = zoomPercentage / 100.0;
-        double visibleWorldWidth = defaultVisibleWorldSize / zoomMultiplier;
-        double visibleWorldHeight = defaultVisibleWorldSize / zoomMultiplier;
+        double visibleWorldWidth = generationSettings.defaultVisibleWorldWidth() / zoomMultiplier;
+        double visibleWorldHeight = generationSettings.defaultVisibleWorldHeight() / zoomMultiplier;
 
-        return new Space(new Point(0, 0), visibleWorldWidth, visibleWorldHeight);
+        return new Space(generationSettings.defaultWorldFocus(), visibleWorldWidth, visibleWorldHeight);
     }
 
-
-
     private Integer requestIterationCount() {
-        consolePanel.printText("Введите количество миллионов итераций: ");
-        int iterationCountInMillions = consolePanel.getUserInt(10, 50);
-        return iterationCountInMillions * 1_000_000;
+        int iterationCountInMillions = consolePanel.requestInt("Введите количество миллионов итераций", "20", generationInputRestrictions.iterationCountInMillions());
+        return Math.multiplyExact(iterationCountInMillions, generationSettings.iterationsPerMillion());
     }
 
     private Integer requestRandomSeed() {
-        consolePanel.printText("Введите начальное значение генератора случайных чисел: ");
-        return consolePanel.getUserInt(0, 100);
+        return consolePanel.requestInt("Введите начальное значение генератора случайных чисел", "42", generationInputRestrictions.randomSeed());
     }
 
     private Renderer requestRenderer() {
-        consolePanel.printText("Выберите способ генерации изображения: ");
-
         List<String> rendererNames = rendererCatalog.showCatalog();
-        consolePanel.printNumberedOptions(rendererNames);
-
-        int selectedOption = consolePanel.getUserInt(1, rendererNames.size());
-        String selectedRendererName = rendererNames.get(selectedOption - 1);
+        String selectedRendererName = consolePanel.requestOption("Выберите способ генерации изображения", rendererNames);
 
         return rendererCatalog.getAlgorithm(selectedRendererName);
     }
 
-
     private TransformationParameters requestTransformationParameters() {
-        consolePanel.printText("Введите общие параметры для всех преобразований. ");
-
-        consolePanel.printText("Введите масштаб координат преобразований в процентах (100 — без изменения): ");
-        int scalePercentage = consolePanel.getUserInt(10, 200);
-
-        consolePanel.printText("Введите угол поворота в градусах: ");
-        int rotationAngleInDegrees = consolePanel.getUserInt(-180, 180);
-
-        consolePanel.printText("Введите горизонтальный сдвиг в сотых долях: ");
-        int horizontalShiftInHundredths = consolePanel.getUserInt(-200, 200);
-
-        consolePanel.printText("Введите вертикальный сдвиг в сотых долях: ");
-        int verticalShiftInHundredths = consolePanel.getUserInt(-200, 200);
+        int scalePercentage = consolePanel.requestInt("Введите масштаб координат преобразований в процентах", "100 — без изменения", transformationInputRestrictions.scalePercentage());
+        int rotationAngleInDegrees = consolePanel.requestInt("Введите угол поворота в градусах", "0", transformationInputRestrictions.rotationAngleInDegrees());
+        int horizontalShiftInHundredths = consolePanel.requestInt("Введите горизонтальный сдвиг в сотых долях", "0", transformationInputRestrictions.horizontalShiftInHundredths());
+        int verticalShiftInHundredths = consolePanel.requestInt("Введите вертикальный сдвиг в сотых долях", "0", transformationInputRestrictions.verticalShiftInHundredths());
 
         return new TransformationParameters(scalePercentage / 100.0, Math.toRadians(rotationAngleInDegrees), horizontalShiftInHundredths / 100.0, verticalShiftInHundredths / 100.0);
     }
@@ -156,15 +118,7 @@ public class ConfigurationReader {
 
     private List<String> requestTransformationNames() {
         List<String> availableTransformationNames = transformationCatalog.showCatalog();
-
-        consolePanel.printText("Выберите одно или несколько преобразований: ");
-        consolePanel.printNumberedOptions(availableTransformationNames);
-        int[] selectedOptionNumbers = consolePanel.getUserIntArray(1, availableTransformationNames.size());
-
-        List<String> selectedTransformationNames = new ArrayList<>(selectedOptionNumbers.length);
-        for (int selectedOptionNumber : selectedOptionNumbers) selectedTransformationNames.add(availableTransformationNames.get(selectedOptionNumber - 1));
-
-        return List.copyOf(selectedTransformationNames);
+        String example = "1-" + availableTransformationNames.size() + " или 1 3 5 или 1, 3, 5";
+        return consolePanel.requestOptions("Выберите одно или несколько преобразований", example, availableTransformationNames);
     }
-
 }

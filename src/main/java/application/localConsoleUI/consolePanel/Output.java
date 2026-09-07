@@ -1,4 +1,4 @@
-package application.localConsoleUI.terminal;
+package application.localConsoleUI.consolePanel;
 
 import org.springframework.stereotype.Component;
 
@@ -12,14 +12,18 @@ public class Output {
         this.printer = printer;
     }
 
-
     public void print(String text) {
+        printer.print(text);
+        printer.flush();
+    }
+
+    public void printLine(String text) {
         printer.println(text);
         printer.flush();
     }
 
-
-    public void printEmptyLine(int count) {
+    public void printEmptyLines(int count) {
         for (int i = 0; i < count; i++) printer.println();
+        printer.flush();
     }
 }

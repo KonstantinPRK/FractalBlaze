@@ -1,7 +1,8 @@
 package application.localConsoleUI.readerRecorder;
 
+import application.core.settings.OutputFileSettings;
 import application.imageGeneration.imageWriter.ImageFile;
-import application.localConsoleUI.terminal.ConsolePanel;
+import application.localConsoleUI.consolePanel.ConsolePanel;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -12,21 +13,21 @@ import java.nio.file.StandardOpenOption;
 
 @Component
 public class FileRecorder {
-    private static final String IMAGE_FILE_NAME = "fractal";
-
     private final ConsolePanel consolePanel;
+    private final OutputFileSettings settings;
 
-    public FileRecorder(ConsolePanel consolePanel) {
+    public FileRecorder(ConsolePanel consolePanel, OutputFileSettings settings) {
         this.consolePanel = consolePanel;
+        this.settings = settings;
     }
 
     public Path returnFractalImage(ImageFile imageFile, Path outputDirectory) {
         Path normalizedOutputDirectory = outputDirectory.toAbsolutePath().normalize();
-        String fileName = IMAGE_FILE_NAME + "." + imageFile.fileExtension();
+        String fileName = settings.baseFileName() + "." + imageFile.fileExtension();
         Path outputFile = findAvailableOutputFile(normalizedOutputDirectory, fileName);
 
         saveFile(imageFile, normalizedOutputDirectory, outputFile);
-        consolePanel.printText("Изображение сохранено в " + outputFile);
+        consolePanel.showMessage("Изображение сохранено в " + outputFile);
 
         return outputFile;
     }

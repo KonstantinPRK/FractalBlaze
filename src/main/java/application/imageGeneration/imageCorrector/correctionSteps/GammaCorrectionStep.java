@@ -1,5 +1,6 @@
 package application.imageGeneration.imageCorrector.correctionSteps;
 
+import application.core.settings.GammaCorrectionSettings;
 import application.picture.FractalImage;
 import application.picture.Pixel;
 import org.springframework.core.annotation.Order;
@@ -8,7 +9,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Order(3)
 public final class GammaCorrectionStep implements ImageCorrectionStep {
-    private static final double GAMMA = 2.2;
+    private final GammaCorrectionSettings settings;
+
+    public GammaCorrectionStep(GammaCorrectionSettings settings) {
+        this.settings = settings;
+    }
 
     @Override
     public void applyCorrection(FractalImage image) {
@@ -29,7 +34,7 @@ public final class GammaCorrectionStep implements ImageCorrectionStep {
 
     private int applyGamma(int colorComponent) {
         double normalizedColor = colorComponent / 255.0;
-        double correctedColor = Math.pow(normalizedColor, 1.0 / GAMMA);
+        double correctedColor = Math.pow(normalizedColor, 1.0 / settings.gamma());
         return clampColorComponent((int) Math.round(correctedColor * 255.0));
     }
 
