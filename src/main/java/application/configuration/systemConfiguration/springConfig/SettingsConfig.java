@@ -1,5 +1,6 @@
 package application.configuration.systemConfiguration.springConfig;
 
+import application.configuration.systemConfiguration.settingsRecords.ColorSettings;
 import application.configuration.systemConfiguration.settingsRecords.ConsoleLayoutSettings;
 import application.configuration.systemConfiguration.settingsRecords.GammaCorrectionSettings;
 import application.configuration.systemConfiguration.settingsRecords.GenerationSettings;
@@ -25,7 +26,12 @@ public class SettingsConfig {
 
     @Bean
     public SingleThreadRendererSettings singleThreadRendererSettings() {
-        return new SingleThreadRendererSettings(20, 10_000, 0.85f, 1.0f);
+        return new SingleThreadRendererSettings(20, 10_000);
+    }
+
+    @Bean
+    public ColorSettings colorSettings() {
+        return new ColorSettings(0.85f, 1.0f);
     }
 
     @Bean
