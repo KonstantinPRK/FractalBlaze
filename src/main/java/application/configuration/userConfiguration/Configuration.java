@@ -1,10 +1,10 @@
-package application.userConfiguration;
+package application.configuration.userConfiguration;
 
-import application.userConfiguration.parameters.ImageSize;
+import application.configuration.userConfiguration.userParameterRecords.ImageSize;
 import application.renderer.Renderer;
 import application.picture.Space;
 import application.transformation.Transformation;
-import application.userConfiguration.parameters.TransformationParameters;
+import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
 
 import javax.imageio.ImageWriter;
 import java.nio.file.Path;

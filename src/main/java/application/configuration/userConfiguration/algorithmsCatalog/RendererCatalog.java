@@ -1,4 +1,4 @@
-package application.userConfiguration.algorithmsCatalog;
+package application.configuration.userConfiguration.algorithmsCatalog;
 
 import application.renderer.Renderer;
 import org.springframework.stereotype.Component;

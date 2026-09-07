@@ -1,11 +1,11 @@
 package application.renderer;
 
-import application.core.settings.SingleThreadRendererSettings;
+import application.configuration.systemConfiguration.settingsRecords.SingleThreadRendererSettings;
 import application.picture.FractalImage;
 import application.picture.Point;
 import application.picture.Space;
 import application.transformation.Transformation;
-import application.userConfiguration.parameters.TransformationParameters;
+import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
 import org.springframework.stereotype.Component;
 
 import java.awt.Color;
@@ -14,51 +14,68 @@ import java.util.SplittableRandom;
 
 @Component
 public class SingleThreadRenderer implements Renderer {
-    private final SingleThreadRendererSettings settings;
+    private record TrajectoryState(Point point, int color) {}
+    private final int BURN_IN;
+    private final int ITERATIONS_PER_TRAJECTORY;
+    private final float COLOR_SATURATION;
+    private final float COLOR_BRIGHTNESS;
 
     public SingleThreadRenderer(SingleThreadRendererSettings settings) {
-        this.settings = settings;
+        BURN_IN = settings.burnIn();
+        ITERATIONS_PER_TRAJECTORY = settings.iterationsPerTrajectory();
+        COLOR_SATURATION = settings.colorSaturation();
+        COLOR_BRIGHTNESS = settings.colorBrightness();
     }
 
     @Override
-    public FractalImage render(FractalImage emptyCanvas, Space space, TransformationParameters transformationParameters, List<Transformation> transformations, int iterationCount, long randomSeed) {
+    public FractalImage render(FractalImage emptyCanvas, Space space, TransformationParameters transformationParameters, List<Transformation> transformations, int userIterationCount, long randomSeed) {
         SplittableRandom random = new SplittableRandom(randomSeed);
-        int[] transformationColors = createTransformationColors(transformations.size(), random.split());
-        double rotationCosine = Math.cos(transformationParameters.rotationAngleInRadians());
-        double rotationSine = Math.sin(transformationParameters.rotationAngleInRadians());
+        int[] transformationColors = setColorForTransformations(transformations.size(), random.split());
+        double cosOfRotation = Math.cos(transformationParameters.rotationAngleInRadians());
+        double sinOfRotation = Math.sin(transformationParameters.rotationAngleInRadians());
 
-        for (int firstIteration = 0; firstIteration < iterationCount; firstIteration += settings.iterationsPerTrajectory()) {
-            int iterationsInCurrentTrajectory = Math.min(settings.iterationsPerTrajectory(), iterationCount - firstIteration);
+        drawAllTrajectories(emptyCanvas, space, transformationParameters, transformations, transformationColors, userIterationCount, cosOfRotation, sinOfRotation, random);
+        validateAtLeastOnePointWasDrawn(emptyCanvas);
 
-            TrajectoryState trajectory = warmUpTrajectory(createRandomPoint(space, random), transformations, transformationColors, transformationParameters, rotationCosine, rotationSine, random);
-            Point currentPoint = trajectory.point();
-            int currentColor = trajectory.color();
-
-            for (int trajectoryIteration = 0; trajectoryIteration < iterationsInCurrentTrajectory; trajectoryIteration++) {
-                int transformationIndex = random.nextInt(transformations.size());
-                Transformation selectedTransformation = transformations.get(transformationIndex);
-                Point transformedPoint = applyTransformation(currentPoint, selectedTransformation, transformationParameters, rotationCosine, rotationSine);
-
-                if (!hasFiniteCoordinates(transformedPoint)) {
-                    trajectory = warmUpTrajectory(createRandomPoint(space, random), transformations, transformationColors, transformationParameters, rotationCosine, rotationSine, random);
-                    currentPoint = trajectory.point();
-                    currentColor = trajectory.color();
-                    continue;
-                }
-
-                currentPoint = transformedPoint;
-                currentColor = mixColors(currentColor, transformationColors[transformationIndex]);
-                recordPointHit(currentPoint, currentColor, space, emptyCanvas);
-            }
-        }
-
-        ensureAtLeastOnePointWasDrawn(emptyCanvas);
         return emptyCanvas;
     }
 
     @Override
     public String getName() {
         return "SINGLE_THREAD";
+    }
+
+    private void drawAllTrajectories(FractalImage canvas, Space space, TransformationParameters transformationParameters, List<Transformation> transformations, int[] transformationColors, int userIterationCount, double cosOfRotation, double sinOfRotation, SplittableRandom random) {
+        for (int iterationSum = 0; iterationSum < userIterationCount; iterationSum += ITERATIONS_PER_TRAJECTORY) {
+            int iterationsInCurrentTrajectory = Math.min(ITERATIONS_PER_TRAJECTORY, userIterationCount - iterationSum);
+            drawSingleTrajectory(canvas, space, transformationParameters, transformations, transformationColors, iterationsInCurrentTrajectory, cosOfRotation, sinOfRotation, random);
+        }
+    }
+
+    private void drawSingleTrajectory(FractalImage canvas, Space space, TransformationParameters transformationParameters, List<Transformation> transformations, int[] transformationColors, int iterationsInCurrentTrajectory, double cosOfRotation, double sinOfRotation, SplittableRandom random) {
+        TrajectoryState trajectory = warmUpTrajectory(createRandomPoint(space, random), transformations, transformationColors, transformationParameters, cosOfRotation, sinOfRotation, random);
+        Point currentPoint = trajectory.point();
+        int currentColor = trajectory.color();
+
+        for (int trajectorySum = 0; trajectorySum < iterationsInCurrentTrajectory; trajectorySum++) {
+            int transformationIndex = random.nextInt(transformations.size());
+            Transformation selectedTransformation = transformations.get(transformationIndex);
+            Point transformedPoint = applyTransformation(currentPoint, selectedTransformation, transformationParameters, cosOfRotation, sinOfRotation);
+
+            if (Double.isNaN(transformedPoint.x())
+                    || Double.isInfinite(transformedPoint.x())
+                    || Double.isNaN(transformedPoint.y())
+                    || Double.isInfinite(transformedPoint.y())) {
+                trajectory = warmUpTrajectory(createRandomPoint(space, random), transformations, transformationColors, transformationParameters, cosOfRotation, sinOfRotation, random);
+                currentPoint = trajectory.point();
+                currentColor = trajectory.color();
+                continue;
+            }
+
+            currentPoint = transformedPoint;
+            currentColor = mixColors(currentColor, transformationColors[transformationIndex]);
+            recordPointHit(currentPoint, currentColor, space, canvas);
+        }
     }
 
     private Point createRandomPoint(Space space, SplittableRandom random) {
@@ -71,14 +88,14 @@ public class SingleThreadRenderer implements Renderer {
         return new Point(randomX, randomY);
     }
 
-    private TrajectoryState warmUpTrajectory(Point startingPoint, List<Transformation> transformations, int[] transformationColors, TransformationParameters transformationParameters, double rotationCosine, double rotationSine, SplittableRandom random) {
+    private TrajectoryState warmUpTrajectory(Point startingPoint, List<Transformation> transformations, int[] transformationColors, TransformationParameters transformationParameters, double cosOfRotation, double sinOfRotation, SplittableRandom random) {
         Point currentPoint = startingPoint;
         int currentColor = 0;
 
-        for (int warmUpIteration = 0; warmUpIteration < settings.burnIn(); warmUpIteration++) {
+        for (int warmUpIteration = 0; warmUpIteration < BURN_IN; warmUpIteration++) {
             int transformationIndex = random.nextInt(transformations.size());
             Transformation selectedTransformation = transformations.get(transformationIndex);
-            currentPoint = applyTransformation(currentPoint, selectedTransformation, transformationParameters, rotationCosine, rotationSine);
+            currentPoint = applyTransformation(currentPoint, selectedTransformation, transformationParameters, cosOfRotation, sinOfRotation);
 
             if (warmUpIteration == 0)currentColor = transformationColors[transformationIndex];
             else currentColor = mixColors(currentColor, transformationColors[transformationIndex]);
@@ -87,25 +104,25 @@ public class SingleThreadRenderer implements Renderer {
         return new TrajectoryState(currentPoint, currentColor);
     }
 
-    private Point applyTransformation(Point point, Transformation transformation, TransformationParameters transformationParameters, double rotationCosine, double rotationSine) {
+    private Point applyTransformation(Point point, Transformation transformation, TransformationParameters transformationParameters, double cosOfRotation, double sinOfRotation) {
         double scaledX = point.x() * transformationParameters.scale();
         double scaledY = point.y() * transformationParameters.scale();
 
-        double rotatedX = scaledX * rotationCosine - scaledY * rotationSine;
-        double rotatedY = scaledX * rotationSine + scaledY * rotationCosine;
+        double rotatedX = scaledX * cosOfRotation - scaledY * sinOfRotation;
+        double rotatedY = scaledX * sinOfRotation + scaledY * cosOfRotation;
 
         Point transformedByCommonParameters = new Point(rotatedX + transformationParameters.shiftX(), rotatedY + transformationParameters.shiftY());
 
         return transformation.apply(transformedByCommonParameters);
     }
 
-    private int[] createTransformationColors(int transformationCount, SplittableRandom random) {
+    private int[] setColorForTransformations(int transformationCount, SplittableRandom random) {
         int[] transformationColors = new int[transformationCount];
         double startingHue = random.nextDouble();
 
         for (int transformationIndex = 0; transformationIndex < transformationCount; transformationIndex++) {
             float hue = (float) (startingHue + (double) transformationIndex / transformationCount);
-            Color color = Color.getHSBColor(hue % 1.0f, settings.colorSaturation(), settings.colorBrightness());
+            Color color = Color.getHSBColor(hue % 1.0f, COLOR_SATURATION, COLOR_BRIGHTNESS);
             transformationColors[transformationIndex] = color.getRGB() & 0x00FFFFFF;
         }
 
@@ -132,11 +149,7 @@ public class SingleThreadRenderer implements Renderer {
         return color & 0xFF;
     }
 
-    private boolean hasFiniteCoordinates(Point point) {
-        return Double.isFinite(point.x()) && Double.isFinite(point.y());
-    }
-
-    private void ensureAtLeastOnePointWasDrawn(FractalImage canvas) {
+    private void validateAtLeastOnePointWasDrawn(FractalImage canvas) {
         for (int pixelIndex = 0; pixelIndex < canvas.data().length; pixelIndex++) {
             if (canvas.data()[pixelIndex].hitCount() > 0)return;
         }
@@ -159,5 +172,5 @@ public class SingleThreadRenderer implements Renderer {
         if (canvas.contains(pixelX, pixelY))canvas.addHit(pixelX, pixelY, color);
     }
 
-    private record TrajectoryState(Point point, int color) {}
+
 }

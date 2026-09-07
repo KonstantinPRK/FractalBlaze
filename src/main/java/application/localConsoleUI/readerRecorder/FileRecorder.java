@@ -1,6 +1,6 @@
 package application.localConsoleUI.readerRecorder;
 
-import application.core.settings.OutputFileSettings;
+import application.configuration.systemConfiguration.settingsRecords.OutputFileSettings;
 import application.imageGeneration.imageWriter.ImageFile;
 import application.localConsoleUI.consolePanel.ConsolePanel;
 import org.springframework.stereotype.Component;

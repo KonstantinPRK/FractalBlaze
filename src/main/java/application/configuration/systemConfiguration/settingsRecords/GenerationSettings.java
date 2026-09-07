@@ -1,4 +1,4 @@
-package application.core.settings;
+package application.configuration.systemConfiguration.settingsRecords;
 
 import application.picture.Point;
 

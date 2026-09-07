@@ -1,6 +1,6 @@
 package application.transformation;
 
-import application.core.settings.TransformationCalculationSettings;
+import application.configuration.systemConfiguration.settingsRecords.TransformationCalculationSettings;
 import application.picture.Point;
 import org.springframework.stereotype.Component;
 

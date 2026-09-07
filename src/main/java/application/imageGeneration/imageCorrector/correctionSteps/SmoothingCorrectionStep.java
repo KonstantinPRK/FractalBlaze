@@ -1,6 +1,6 @@
 package application.imageGeneration.imageCorrector.correctionSteps;
 
-import application.core.settings.SmoothingSettings;
+import application.configuration.systemConfiguration.settingsRecords.SmoothingSettings;
 import application.picture.FractalImage;
 import application.picture.Pixel;
 import org.springframework.core.annotation.Order;

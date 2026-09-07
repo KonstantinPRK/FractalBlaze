@@ -1,7 +1,7 @@
 package application.localConsoleUI.consolePanel;
 
-import application.core.restrictions.IntegerRange;
-import application.core.settings.ConsoleLayoutSettings;
+import application.configuration.systemConfiguration.restrictionsRecords.IntegerRange;
+import application.configuration.systemConfiguration.settingsRecords.ConsoleLayoutSettings;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;

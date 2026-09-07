@@ -1,7 +1,7 @@
 package application.renderer;
 
 import application.transformation.Transformation;
-import application.userConfiguration.parameters.TransformationParameters;
+import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
 import application.picture.FractalImage;
 import application.picture.Space;
 

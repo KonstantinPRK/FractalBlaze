@@ -1,6 +1,6 @@
-package application.userConfiguration.algorithmsCatalog;
+package application.configuration.userConfiguration.algorithmsCatalog;
 
-import application.userConfiguration.parameters.ImageFormat;
+import application.configuration.userConfiguration.userParameterRecords.ImageFormat;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageWriter;

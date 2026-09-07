@@ -1,6 +1,6 @@
 package application.imageGeneration.imageCorrector.correctionSteps;
 
-import application.core.settings.GammaCorrectionSettings;
+import application.configuration.systemConfiguration.settingsRecords.GammaCorrectionSettings;
 import application.picture.FractalImage;
 import application.picture.Pixel;
 import org.springframework.core.annotation.Order;

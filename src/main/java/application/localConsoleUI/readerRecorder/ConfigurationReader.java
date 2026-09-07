@@ -1,17 +1,17 @@
 package application.localConsoleUI.readerRecorder;
 
-import application.core.restrictions.GenerationInputRestrictions;
-import application.core.restrictions.ImageSizeRestrictions;
-import application.core.restrictions.TransformationInputRestrictions;
-import application.core.settings.GenerationSettings;
+import application.configuration.systemConfiguration.restrictionsRecords.GenerationInputRestrictions;
+import application.configuration.systemConfiguration.restrictionsRecords.ImageSizeRestrictions;
+import application.configuration.systemConfiguration.restrictionsRecords.TransformationInputRestrictions;
+import application.configuration.systemConfiguration.settingsRecords.GenerationSettings;
 import application.localConsoleUI.consolePanel.ConsolePanel;
 import application.picture.Space;
 import application.renderer.Renderer;
 import application.transformation.Transformation;
-import application.userConfiguration.Configuration;
-import application.userConfiguration.algorithmsCatalog.Catalog;
-import application.userConfiguration.parameters.ImageSize;
-import application.userConfiguration.parameters.TransformationParameters;
+import application.configuration.userConfiguration.Configuration;
+import application.configuration.userConfiguration.algorithmsCatalog.Catalog;
+import application.configuration.userConfiguration.userParameterRecords.ImageSize;
+import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageWriter;

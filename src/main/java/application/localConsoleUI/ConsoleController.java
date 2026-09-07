@@ -1,7 +1,7 @@
 package application.localConsoleUI;
 
 import application.imageGeneration.imageWriter.ImageFile;
-import application.userConfiguration.Configuration;
+import application.configuration.userConfiguration.Configuration;
 import application.localConsoleUI.readerRecorder.ConfigurationReader;
 import application.localConsoleUI.readerRecorder.FileRecorder;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package application.picture;
 
-import application.userConfiguration.parameters.ImageSize;
+import application.configuration.userConfiguration.userParameterRecords.ImageSize;
 
 import java.util.Arrays;
 import java.util.Objects;

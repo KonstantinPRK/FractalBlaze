@@ -1,4 +1,4 @@
-package application.userConfiguration.parameters;
+package application.configuration.userConfiguration.userParameterRecords;
 
 public record TransformationParameters(
         double scale,
