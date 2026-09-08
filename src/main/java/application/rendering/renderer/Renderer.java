@@ -1,4 +1,4 @@
-package application.renderer;
+package application.rendering.renderer;
 
 import application.transformation.Transformation;
 import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
@@ -9,11 +9,12 @@ import java.util.List;
 
 public interface Renderer {
     String getName();
+
     FractalImage render(
-            FractalImage emptyCanvas,
-            Space magnifier,
+            FractalImage canvas,
+            Space space,
             TransformationParameters transformationParameters,
             List<Transformation> transformations,
-            int iterationCount,
+            int userIterationCount,
             long randomSeed);
 }

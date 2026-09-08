@@ -6,7 +6,7 @@ import application.configuration.systemConfiguration.restrictionsRecords.Transfo
 import application.configuration.systemConfiguration.settingsRecords.GenerationSettings;
 import application.localConsoleUI.consolePanel.ConsolePanel;
 import application.picture.Space;
-import application.renderer.Renderer;
+import application.rendering.renderer.Renderer;
 import application.transformation.Transformation;
 import application.configuration.userConfiguration.Configuration;
 import application.configuration.userConfiguration.algorithmsCatalog.Catalog;

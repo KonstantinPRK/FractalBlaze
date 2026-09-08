@@ -5,8 +5,8 @@ import application.configuration.systemConfiguration.settingsRecords.ConsoleLayo
 import application.configuration.systemConfiguration.settingsRecords.GammaCorrectionSettings;
 import application.configuration.systemConfiguration.settingsRecords.GenerationSettings;
 import application.configuration.systemConfiguration.settingsRecords.OutputFileSettings;
-import application.configuration.systemConfiguration.settingsRecords.SingleThreadRendererSettings;
 import application.configuration.systemConfiguration.settingsRecords.SmoothingSettings;
+import application.configuration.systemConfiguration.settingsRecords.TrajectorySettings;
 import application.configuration.systemConfiguration.settingsRecords.TransformationCalculationSettings;
 import application.picture.Point;
 import org.springframework.context.annotation.Bean;
@@ -25,8 +25,8 @@ public class SettingsConfig {
     }
 
     @Bean
-    public SingleThreadRendererSettings singleThreadRendererSettings() {
-        return new SingleThreadRendererSettings(20, 10_000);
+    public TrajectorySettings trajectorySettings() {
+        return new TrajectorySettings(20, 10_000);
     }
 
     @Bean

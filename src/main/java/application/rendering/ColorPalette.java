@@ -1,4 +1,4 @@
-package application.picture;
+package application.rendering;
 
 import application.configuration.systemConfiguration.settingsRecords.ColorSettings;
 import org.springframework.stereotype.Component;

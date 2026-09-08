@@ -5,7 +5,7 @@ import application.imageGeneration.imageWriter.ImageFile;
 import application.imageGeneration.imageWriter.ImageFileWriter;
 import application.localConsoleUI.ConsoleController;
 import application.picture.FractalImage;
-import application.renderer.Renderer;
+import application.rendering.renderer.Renderer;
 import application.configuration.userConfiguration.Configuration;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;

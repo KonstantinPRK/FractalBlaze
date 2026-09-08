@@ -1,6 +1,6 @@
 package application.configuration.userConfiguration.algorithmsCatalog;
 
-import application.renderer.Renderer;
+import application.rendering.renderer.Renderer;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
