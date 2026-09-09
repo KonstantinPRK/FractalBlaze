@@ -10,6 +10,7 @@ import application.configuration.userConfiguration.Configuration;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public final class FractalBlazeApplication {
@@ -24,7 +25,8 @@ public final class FractalBlazeApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(FractalBlazeApplication.class, args);
+        ConfigurableApplicationContext applicationContext = SpringApplication.run(FractalBlazeApplication.class, args);
+        applicationContext.close();
     }
 
     @PostConstruct

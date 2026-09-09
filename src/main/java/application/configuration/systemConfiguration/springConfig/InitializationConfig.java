@@ -1,5 +1,6 @@
 package application.configuration.systemConfiguration.springConfig;
 
+import application.configuration.systemConfiguration.settingsRecords.RenderingSettings;
 import application.configuration.userConfiguration.userParameterRecords.ImageFormat;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Configuration
 public class InitializationConfig {
@@ -19,6 +22,11 @@ public class InitializationConfig {
     @Bean(destroyMethod = "")
     public PrintStream printer() {
         return System.out;
+    }
+
+    @Bean(name = "renderingExecutor", destroyMethod = "shutdown")
+    public ExecutorService renderingExecutor(RenderingSettings settings) {
+        return Executors.newFixedThreadPool(settings.threadCount());
     }
 
     @Bean(name = "JPEG", destroyMethod = "dispose")

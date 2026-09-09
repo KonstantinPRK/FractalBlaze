@@ -1,14 +1,11 @@
 package application.rendering;
 
 import application.configuration.systemConfiguration.settingsRecords.TrajectorySettings;
-import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
-import application.picture.FractalImage;
 import application.picture.Point;
 import application.picture.Space;
 import application.transformation.Transformation;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.SplittableRandom;
 
 @Component
@@ -27,34 +24,15 @@ public class TrajectoryDrawer {
         this.worldToPixelMapper = worldToPixelMapper;
     }
 
-    public boolean drawTrajectory(
-            FractalImage canvas,
-            Space space,
-            TransformationParameters transformationParameters,
-            List<Transformation> transformations,
-            int[] transformationColors,
-            int trajectoryIterationCount,
-            double cosOfRotation,
-            double sinOfRotation,
-            SplittableRandom random)
-    {
-        TrajectoryState trajectory = warmUpTrajectory(
-                createRandomPoint(space, random),
-                transformations,
-                transformationColors,
-                transformationParameters,
-                cosOfRotation,
-                sinOfRotation,
-                random);
-
+    public void drawTrajectory(Layer layer, RenderingContext context, int trajectoryIterationCount, SplittableRandom random) {
+        TrajectoryState trajectory = warmUpTrajectory(context, random);
         Point currentPoint = trajectory.point();
         int currentColor = trajectory.color();
-        boolean atLeastOnePointWasRecorded = false;
 
         for (int trajectorySum = 0; trajectorySum < trajectoryIterationCount; trajectorySum++) {
-            int transformationIndex = random.nextInt(transformations.size());
-            Transformation selectedTransformation = transformations.get(transformationIndex);
-            Point transformedPoint = pointTransformer.applyTransformation(currentPoint, selectedTransformation, transformationParameters, cosOfRotation, sinOfRotation);
+            int transformationIndex = random.nextInt(context.transformations().size());
+            Transformation selectedTransformation = context.transformations().get(transformationIndex);
+            Point transformedPoint = pointTransformer.applyTransformation(currentPoint, selectedTransformation, context.transformationParameters(), context.cosOfRotation(), context.sinOfRotation());
 
             boolean pointHasInvalidCoordinates =
                        Double.isNaN(transformedPoint.x())
@@ -63,48 +41,31 @@ public class TrajectoryDrawer {
                     || Double.isInfinite(transformedPoint.y());
 
             if (pointHasInvalidCoordinates) {
-                trajectory = warmUpTrajectory(
-                        createRandomPoint(space, random),
-                        transformations,
-                        transformationColors,
-                        transformationParameters,
-                        cosOfRotation,
-                        sinOfRotation,
-                        random);
-
+                trajectory = warmUpTrajectory(context, random);
                 currentPoint = trajectory.point();
                 currentColor = trajectory.color();
                 continue;
             }
 
             currentPoint = transformedPoint;
-            currentColor = colorPalette.mixColors(currentColor, transformationColors[transformationIndex]);
+            currentColor = colorPalette.mixColors(currentColor, context.transformationColors()[transformationIndex]);
 
-            if (recordPointHit(currentPoint, currentColor, space, canvas))atLeastOnePointWasRecorded = true;
+            recordPointHit(currentPoint, currentColor, layer, context);
         }
-
-        return atLeastOnePointWasRecorded;
     }
 
-    private TrajectoryState warmUpTrajectory(
-            Point startingPoint,
-            List<Transformation> transformations,
-            int[] transformationColors,
-            TransformationParameters transformationParameters,
-            double cosOfRotation,
-            double sinOfRotation,
-            SplittableRandom random)
-    {
-        Point currentPoint = startingPoint;
+    private TrajectoryState warmUpTrajectory(RenderingContext context, SplittableRandom random) {
+        Point currentPoint = createRandomPoint(context.space(), random);
         int currentColor = 0;
 
         for (int warmUpIteration = 0; warmUpIteration < BURN_IN; warmUpIteration++) {
-            int transformationIndex = random.nextInt(transformations.size());
-            Transformation selectedTransformation = transformations.get(transformationIndex);
-            currentPoint = pointTransformer.applyTransformation(currentPoint, selectedTransformation, transformationParameters, cosOfRotation, sinOfRotation);
+            int transformationIndex = random.nextInt(context.transformations().size());
+            Transformation selectedTransformation = context.transformations().get(transformationIndex);
 
-            if (warmUpIteration == 0)currentColor = transformationColors[transformationIndex];
-            else currentColor = colorPalette.mixColors(currentColor, transformationColors[transformationIndex]);
+            currentPoint = pointTransformer.applyTransformation(currentPoint, selectedTransformation, context.transformationParameters(), context.cosOfRotation(), context.sinOfRotation());
+
+            if (warmUpIteration == 0)currentColor = context.transformationColors()[transformationIndex];
+            else currentColor = colorPalette.mixColors(currentColor, context.transformationColors()[transformationIndex]);
         }
 
         return new TrajectoryState(currentPoint, currentColor);
@@ -120,17 +81,16 @@ public class TrajectoryDrawer {
         return new Point(randomX, randomY);
     }
 
-    private boolean recordPointHit(Point point, int color, Space space, FractalImage canvas) {
-        boolean pointIsOutsideVisibleSpace = !space.contains(point);
-        if (pointIsOutsideVisibleSpace)return false;
+    private void recordPointHit(Point point, int color, Layer layer, RenderingContext context) {
+        boolean pointIsOutsideVisibleSpace = !context.space().contains(point);
+        if (pointIsOutsideVisibleSpace)return;
 
-        int pixelX = worldToPixelMapper.mapHorizontalCoordinate(point, space, canvas);
-        int pixelY = worldToPixelMapper.mapVerticalCoordinate(point, space, canvas);
+        int pixelX = worldToPixelMapper.mapHorizontalCoordinate(point, context);
+        int pixelY = worldToPixelMapper.mapVerticalCoordinate(point, context);
 
-        boolean pixelIsOutsideCanvas = !canvas.contains(pixelX, pixelY);
-        if (pixelIsOutsideCanvas)return false;
+        boolean pixelIsOutsideCanvas = !layer.contains(pixelX, pixelY);
+        if (pixelIsOutsideCanvas)return;
 
-        canvas.addHit(pixelX, pixelY, color);
-        return true;
+        layer.addHit(pixelX, pixelY, color);
     }
 }
