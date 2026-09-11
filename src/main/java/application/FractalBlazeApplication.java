@@ -7,12 +7,9 @@ import application.localConsoleUI.ConsoleController;
 import application.picture.FractalImage;
 import application.rendering.renderer.Renderer;
 import application.configuration.userConfiguration.Configuration;
-import jakarta.annotation.PostConstruct;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.stereotype.Component;
 
-@SpringBootApplication
+@Component
 public final class FractalBlazeApplication {
     private final ConsoleController userInterface;
     private final ImagePostCorrector imagePostCorrector;
@@ -24,12 +21,6 @@ public final class FractalBlazeApplication {
         this.imageFileWriter = imageFileWriter;
     }
 
-    public static void main(String[] args) {
-        ConfigurableApplicationContext applicationContext = SpringApplication.run(FractalBlazeApplication.class, args);
-        applicationContext.close();
-    }
-
-    @PostConstruct
     public void start() {
         Configuration configuration = userInterface.requestConfiguration();
         Renderer imageRenderer = configuration.renderer();

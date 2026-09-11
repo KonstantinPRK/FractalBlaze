@@ -1,4 +1,4 @@
-package application.rendering.layerMerger.lineMerger;
+package application.rendering.lineMerger;
 
 import application.rendering.Layer;
 

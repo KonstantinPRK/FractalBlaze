@@ -8,7 +8,8 @@ import application.rendering.ColorPalette;
 import application.rendering.Layer;
 import application.rendering.RenderingContext;
 import application.rendering.Stroker;
-import application.rendering.layerMerger.LayerMerger;
+import application.rendering.imageStateCollector.ImageStateCollector;
+import application.rendering.imageStateCollector.ImageStateCollectorFactory;
 import application.transformation.Transformation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -28,14 +29,14 @@ public class MultiThreadRenderer implements Renderer {
     private final int THREAD_COUNT;
     private final ColorPalette colorPalette;
     private final Stroker stroker;
-    private final LayerMerger layerMerger;
+    private final ImageStateCollectorFactory imageStateCollectorFactory;
     private final ExecutorService executor;
 
-    public MultiThreadRenderer(RenderingSettings settings, ColorPalette colorPalette, Stroker stroker, @Qualifier("multiThreadLayerMerger") LayerMerger layerMerger, @Qualifier("renderingExecutor") ExecutorService executor) {
+    public MultiThreadRenderer(RenderingSettings settings, ColorPalette colorPalette, Stroker stroker, ImageStateCollectorFactory imageStateCollectorFactory, @Qualifier("renderingExecutor") ExecutorService executor) {
         THREAD_COUNT = settings.threadCount();
         this.colorPalette = colorPalette;
         this.stroker = stroker;
-        this.layerMerger = layerMerger;
+        this.imageStateCollectorFactory = imageStateCollectorFactory;
         this.executor = executor;
     }
 
@@ -64,8 +65,7 @@ public class MultiThreadRenderer implements Renderer {
 
         CompletionService<Layer> completedLayers = new ExecutorCompletionService<>(executor);
         Set<Future<Layer>> pendingLayers = new HashSet<>();
-
-        layerMerger.startMerging(canvas);
+        ImageStateCollector imageStateCollector = imageStateCollectorFactory.createForMultiThread(canvas);
 
         try {
             for (int taskIndex = 0; taskIndex < taskCount; taskIndex++) {
@@ -78,9 +78,9 @@ public class MultiThreadRenderer implements Renderer {
 
             Stream.generate(() -> receiveCompletedLayer(completedLayers, pendingLayers))
                     .limit(taskCount)
-                    .forEach(layerMerger::merge);
+                    .forEach(imageStateCollector::collectLayer);
 
-            return layerMerger.getMergingResult();
+            return imageStateCollector.getSnapshot();
         } finally {
             pendingLayers.forEach(pendingLayer -> pendingLayer.cancel(true));
         }

@@ -7,9 +7,9 @@ import application.rendering.ColorPalette;
 import application.rendering.Layer;
 import application.rendering.RenderingContext;
 import application.rendering.Stroker;
-import application.rendering.layerMerger.LayerMerger;
+import application.rendering.imageStateCollector.ImageStateCollector;
+import application.rendering.imageStateCollector.ImageStateCollectorFactory;
 import application.transformation.Transformation;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,12 +18,12 @@ import java.util.List;
 public class SingleThreadRenderer implements Renderer {
     private final ColorPalette colorPalette;
     private final Stroker stroker;
-    private final LayerMerger layerMerger;
+    private final ImageStateCollectorFactory imageStateCollectorFactory;
 
-    public SingleThreadRenderer(ColorPalette colorPalette, Stroker stroker, @Qualifier("singleThreadLayerMerger") LayerMerger layerMerger) {
+    public SingleThreadRenderer(ColorPalette colorPalette, Stroker stroker, ImageStateCollectorFactory imageStateCollectorFactory) {
         this.colorPalette = colorPalette;
         this.stroker = stroker;
-        this.layerMerger = layerMerger;
+        this.imageStateCollectorFactory = imageStateCollectorFactory;
     }
 
     @Override
@@ -47,12 +47,11 @@ public class SingleThreadRenderer implements Renderer {
 
     private FractalImage drawLayers(FractalImage canvas, RenderingContext context) {
         int trajectoryCount = stroker.calculateTrajectoryCount(context);
-
-        layerMerger.startMerging(canvas);
+        ImageStateCollector imageStateCollector = imageStateCollectorFactory.createForSingleThread(canvas);
 
         Layer renderedLayer = stroker.spray(context, 0, trajectoryCount);
-        layerMerger.merge(renderedLayer);
+        imageStateCollector.collectLayer(renderedLayer);
 
-        return layerMerger.getMergingResult();
+        return imageStateCollector.getSnapshot();
     }
 }

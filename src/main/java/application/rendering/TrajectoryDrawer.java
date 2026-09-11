@@ -18,7 +18,7 @@ public class TrajectoryDrawer {
     private record TrajectoryState(Point point, int color) {}
 
     public TrajectoryDrawer(TrajectorySettings settings, ColorPalette colorPalette, PointTransformer pointTransformer, WorldToPixelMapper worldToPixelMapper) {
-        BURN_IN = settings.burnIn();
+        this.BURN_IN = settings.burnIn();
         this.colorPalette = colorPalette;
         this.pointTransformer = pointTransformer;
         this.worldToPixelMapper = worldToPixelMapper;

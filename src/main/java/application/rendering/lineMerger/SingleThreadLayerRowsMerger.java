@@ -1,20 +1,22 @@
-package application.rendering.layerMerger.lineMerger;
+package application.rendering.lineMerger;
 
 import application.rendering.Layer;
 import org.springframework.stereotype.Component;
 
-@Component("singleThreadLayerColumnsMerger")
-public class SingleThreadLayerColumnsMerger implements LayerLineMerger {
+@Component("singleThreadLayerRowsMerger")
+public class SingleThreadLayerRowsMerger implements LayerLineMerger {
     @Override
     public void mergeLines(Layer destinationLayer, Layer sourceLayer) {
-        for (int columnIndex = 0; columnIndex < sourceLayer.width(); columnIndex++) {
-            mergeColumn(destinationLayer, sourceLayer, columnIndex);
+        for (int rowIndex = 0; rowIndex < sourceLayer.height(); rowIndex++) {
+            mergeRow(destinationLayer, sourceLayer, rowIndex);
         }
     }
 
-    private void mergeColumn(Layer destinationLayer, Layer sourceLayer, int columnIndex) {
-        for (int rowIndex = 0; rowIndex < sourceLayer.height(); rowIndex++) {
-            int pixelIndex = rowIndex * sourceLayer.width() + columnIndex;
+    private void mergeRow(Layer destinationLayer, Layer sourceLayer, int rowIndex) {
+        int firstPixelIndex = rowIndex * sourceLayer.width();
+        int endPixelIndex = firstPixelIndex + sourceLayer.width();
+
+        for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) {
             mergePixel(destinationLayer, sourceLayer, pixelIndex);
         }
     }
