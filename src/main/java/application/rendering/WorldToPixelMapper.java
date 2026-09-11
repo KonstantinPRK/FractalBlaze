@@ -1,7 +1,7 @@
 package application.rendering;
 
-import application.picture.Point;
-import application.picture.Space;
+import application.model.Point;
+import application.model.Space;
 import org.springframework.stereotype.Component;
 
 @Component

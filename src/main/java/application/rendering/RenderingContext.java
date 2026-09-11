@@ -1,9 +1,9 @@
 package application.rendering;
 
-import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
-import application.picture.FractalImage;
-import application.picture.Space;
-import application.transformation.Transformation;
+import application.model.TransformationParameters;
+import application.model.FractalImage;
+import application.model.Space;
+import application.rendering.transformation.Transformation;
 
 import java.util.List;
 import java.util.SplittableRandom;

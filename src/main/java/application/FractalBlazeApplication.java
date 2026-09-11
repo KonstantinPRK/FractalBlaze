@@ -1,28 +1,28 @@
 package application;
 
-import application.imageGeneration.imageCorrector.correctors.ImagePostCorrector;
-import application.imageGeneration.imageWriter.ImageFile;
-import application.imageGeneration.imageWriter.ImageFileWriter;
-import application.localConsoleUI.ConsoleController;
-import application.picture.FractalImage;
+import application.configuration.GenerationConfiguration;
+import application.image.encoding.ImageEncoder;
+import application.image.encoding.ImageFile;
+import application.image.processing.ImagePostProcessor;
+import application.model.FractalImage;
 import application.rendering.renderer.Renderer;
-import application.configuration.userConfiguration.Configuration;
+import application.ui.console.ConsoleController;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class FractalBlazeApplication {
     private final ConsoleController userInterface;
-    private final ImagePostCorrector imagePostCorrector;
-    private final ImageFileWriter imageFileWriter;
+    private final ImagePostProcessor imagePostProcessor;
+    private final ImageEncoder imageEncoder;
 
-    public FractalBlazeApplication(ConsoleController userInterface, ImagePostCorrector imagePostCorrector, ImageFileWriter imageFileWriter) {
+    public FractalBlazeApplication(ConsoleController userInterface, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder) {
         this.userInterface = userInterface;
-        this.imagePostCorrector = imagePostCorrector;
-        this.imageFileWriter = imageFileWriter;
+        this.imagePostProcessor = imagePostProcessor;
+        this.imageEncoder = imageEncoder;
     }
 
     public void start() {
-        Configuration configuration = userInterface.requestConfiguration();
+        GenerationConfiguration configuration = userInterface.requestConfiguration();
         Renderer imageRenderer = configuration.renderer();
 
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
@@ -35,9 +35,9 @@ public final class FractalBlazeApplication {
                 configuration.iterationCount(),
                 configuration.randomSeed());
 
-        FractalImage correctedImage = imagePostCorrector.applyCorrection(renderedImage);
+        FractalImage correctedImage = imagePostProcessor.process(renderedImage);
 
-        ImageFile imageFile = imageFileWriter.create(correctedImage, configuration.imageWriter());
-        userInterface.returnFractalImage(imageFile, configuration.outputPath());
+        ImageFile imageFile = imageEncoder.encode(correctedImage, configuration.imageWriter());
+        userInterface.saveFractalImage(imageFile, configuration.outputPath());
     }
 }

@@ -1,6 +1,6 @@
 package application.rendering;
 
-import application.configuration.systemConfiguration.settingsRecords.ColorSettings;
+import application.configuration.setting.ColorSettings;
 import org.springframework.stereotype.Component;
 
 import java.awt.Color;

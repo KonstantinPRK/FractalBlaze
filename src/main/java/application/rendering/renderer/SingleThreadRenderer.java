@@ -1,15 +1,15 @@
 package application.rendering.renderer;
 
-import application.configuration.userConfiguration.userParameterRecords.TransformationParameters;
-import application.picture.FractalImage;
-import application.picture.Space;
+import application.model.TransformationParameters;
+import application.model.FractalImage;
+import application.model.Space;
 import application.rendering.ColorPalette;
 import application.rendering.Layer;
 import application.rendering.RenderingContext;
-import application.rendering.Stroker;
-import application.rendering.imageStateCollector.ImageStateCollector;
-import application.rendering.imageStateCollector.ImageStateCollectorFactory;
-import application.transformation.Transformation;
+import application.rendering.trajectory.Stroker;
+import application.rendering.state.ImageStateCollector;
+import application.rendering.state.ImageStateCollectorFactory;
+import application.rendering.transformation.Transformation;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
