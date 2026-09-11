@@ -5,7 +5,6 @@ import application.configuration.setting.ConsoleLayoutSettings;
 import application.configuration.setting.GammaCorrectionSettings;
 import application.configuration.setting.GenerationSettings;
 import application.configuration.setting.OutputFileSettings;
-import application.configuration.setting.SmoothingSettings;
 import application.configuration.setting.TaskRunnerSettings;
 import application.configuration.setting.TrajectorySettings;
 import application.configuration.setting.TransformationCalculationSettings;
@@ -52,11 +51,6 @@ public class SettingsConfig {
     @Bean
     public GammaCorrectionSettings gammaCorrectionSettings() {
         return new GammaCorrectionSettings(2.2);
-    }
-
-    @Bean
-    public SmoothingSettings smoothingSettings() {
-        return new SmoothingSettings(1);
     }
 
     @Bean

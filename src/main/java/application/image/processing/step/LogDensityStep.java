@@ -1,64 +1,43 @@
 package application.image.processing.step;
 
-import application.execution.TaskBatch;
-import application.execution.TaskRunner;
+import application.execution.LineTaskExecutor;
 import application.execution.WorkRange;
-import application.execution.WorkRangePartitioner;
 import application.model.FractalImage;
 import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.Callable;
-
 @Component
 @Order(1)
 public final class LogDensityStep implements ImageProcessingStep {
-    private final TaskRunner taskRunner;
-    private final WorkRangePartitioner workRangePartitioner;
+    private final LineTaskExecutor lineTaskExecutor;
 
-    public LogDensityStep(TaskRunner taskRunner, WorkRangePartitioner workRangePartitioner) {
-        this.taskRunner = taskRunner;
-        this.workRangePartitioner = workRangePartitioner;
+    public LogDensityStep(LineTaskExecutor lineTaskExecutor) {
+        this.lineTaskExecutor = lineTaskExecutor;
     }
 
     @Override
     public void process(FractalImage image) {
-        List<WorkRange> rowRanges = workRangePartitioner.partition(image.height(), taskRunner.getThreadCount());
-        int maxHitCount = findMaximumHitCount(image, rowRanges);
+        int maxHitCount = findMaximumHitCount(image);
         if (maxHitCount == 0)return;
 
         double maxDensity = Math.log1p(maxHitCount);
-        List<Callable<Void>> correctionTasks = rowRanges.stream()
-                .map(rowRange -> (Callable<Void>) () -> {
-                    processRows(image, rowRange, maxDensity);
-                    return null;
-                })
-                .toList();
-
-        completeTasks(correctionTasks);
+        lineTaskExecutor.executeLines(image.height(), lineIndex -> processLine(image, lineIndex, maxDensity));
     }
 
-    private int findMaximumHitCount(FractalImage image, List<WorkRange> rowRanges) {
-        List<Callable<Integer>> maximumSearchTasks = rowRanges.stream()
-                .map(rowRange -> (Callable<Integer>) () -> findMaximumHitCount(image, rowRange))
-                .toList();
-
-        int maximumHitCount = 0;
-
-        try (TaskBatch<Integer> searchResults = taskRunner.execute(maximumSearchTasks)) {
-            while (searchResults.hasNextResult()) maximumHitCount = Math.max(maximumHitCount, searchResults.takeNextResult());
-        }
-
-        return maximumHitCount;
+    private int findMaximumHitCount(FractalImage image) {
+        return lineTaskExecutor.executeRanges(image.height(), lineRange -> findMaximumHitCount(image, lineRange))
+                .stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
     }
 
-    private int findMaximumHitCount(FractalImage image, WorkRange rowRange) {
+    private int findMaximumHitCount(FractalImage image, WorkRange lineRange) {
         int maximumHitCount = 0;
 
-        for (int pixelY = rowRange.firstIndex(); pixelY < rowRange.endIndex(); pixelY++) {
-            int firstPixelIndex = pixelY * image.width();
+        for (int lineIndex = lineRange.firstIndex(); lineIndex < lineRange.endIndex(); lineIndex++) {
+            int firstPixelIndex = lineIndex * image.width();
             int endPixelIndex = firstPixelIndex + image.width();
 
             for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) maximumHitCount = Math.max(maximumHitCount, image.data()[pixelIndex].hitCount());
@@ -67,39 +46,27 @@ public final class LogDensityStep implements ImageProcessingStep {
         return maximumHitCount;
     }
 
-    private void processRows(FractalImage image, WorkRange rowRange, double maxDensity) {
-        for (int pixelY = rowRange.firstIndex(); pixelY < rowRange.endIndex(); pixelY++) {
-            for (int pixelX = 0; pixelX < image.width(); pixelX++) {
-                Pixel currentPixel = image.pixel(pixelX, pixelY);
+    private void processLine(FractalImage image, int lineIndex, double maxDensity) {
+        int firstPixelIndex = lineIndex * image.width();
+        int endPixelIndex = firstPixelIndex + image.width();
 
-                if (currentPixel.hitCount() == 0)continue;
-
-                double relativeDensity = Math.log1p(currentPixel.hitCount()) / maxDensity;
-
-                int correctedRed;
-                int correctedGreen;
-                int correctedBlue;
-
-                if (hasNoColor(currentPixel)) {
-                    int brightness = scaleColorComponent(255, relativeDensity);
-                    correctedRed = brightness;
-                    correctedGreen = brightness;
-                    correctedBlue = brightness;
-                } else {
-                    correctedRed = scaleColorComponent(currentPixel.red(), relativeDensity);
-                    correctedGreen = scaleColorComponent(currentPixel.green(), relativeDensity);
-                    correctedBlue = scaleColorComponent(currentPixel.blue(), relativeDensity);
-                }
-
-                image.setPixel(pixelX, pixelY, new Pixel(correctedRed, correctedGreen, correctedBlue, currentPixel.hitCount()));
-            }
+        for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) {
+            Pixel currentPixel = image.data()[pixelIndex];
+            image.data()[pixelIndex] = correctPixel(currentPixel, maxDensity);
         }
     }
 
-    private void completeTasks(List<Callable<Void>> tasks) {
-        try (TaskBatch<Void> taskBatch = taskRunner.execute(tasks)) {
-            while (taskBatch.hasNextResult()) taskBatch.takeNextResult();
+    private Pixel correctPixel(Pixel pixel, double maxDensity) {
+        if (pixel.hitCount() == 0)return pixel;
+
+        double relativeDensity = Math.log1p(pixel.hitCount()) / maxDensity;
+
+        if (hasNoColor(pixel)) {
+            int brightness = scaleColorComponent(255, relativeDensity);
+            return new Pixel(brightness, brightness, brightness, pixel.hitCount());
         }
+
+        return new Pixel(scaleColorComponent(pixel.red(), relativeDensity), scaleColorComponent(pixel.green(), relativeDensity), scaleColorComponent(pixel.blue(), relativeDensity), pixel.hitCount());
     }
 
     private boolean hasNoColor(Pixel pixel) {

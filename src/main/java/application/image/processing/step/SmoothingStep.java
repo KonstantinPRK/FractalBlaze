@@ -1,17 +1,10 @@
 package application.image.processing.step;
 
-import application.configuration.setting.SmoothingSettings;
-import application.execution.TaskBatch;
-import application.execution.TaskRunner;
-import application.execution.WorkRange;
-import application.execution.WorkRangePartitioner;
+import application.execution.LineTaskExecutor;
 import application.model.FractalImage;
 import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.concurrent.Callable;
 
 @Component
 @Order(2)
@@ -21,47 +14,25 @@ public final class SmoothingStep implements ImageProcessingStep {
             {2, 4, 2},
             {1, 2, 1}
     };
+    private static final int KERNEL_RADIUS = GAUSSIAN_KERNEL.length / 2;
 
-    private final int kernelRadius;
-    private final TaskRunner taskRunner;
-    private final WorkRangePartitioner workRangePartitioner;
+    private final LineTaskExecutor lineTaskExecutor;
 
-    public SmoothingStep(SmoothingSettings settings, TaskRunner taskRunner, WorkRangePartitioner workRangePartitioner) {
-        kernelRadius = settings.kernelRadius();
-        this.taskRunner = taskRunner;
-        this.workRangePartitioner = workRangePartitioner;
+    public SmoothingStep(LineTaskExecutor lineTaskExecutor) {
+        this.lineTaskExecutor = lineTaskExecutor;
     }
 
     @Override
     public void process(FractalImage image) {
         Pixel[] sourcePixels = image.data().clone();
 
-        List<Callable<Void>> smoothingTasks = createRowRanges(image).stream()
-                .map(rowRange -> (Callable<Void>) () -> {
-                    processRows(image, sourcePixels, rowRange);
-                    return null;
-                })
-                .toList();
-
-        completeTasks(smoothingTasks);
+        lineTaskExecutor.executeLines(image.height(), lineIndex -> processLine(image, sourcePixels, lineIndex));
     }
 
-    private void processRows(FractalImage image, Pixel[] sourcePixels, WorkRange rowRange) {
-        for (int pixelY = rowRange.firstIndex(); pixelY < rowRange.endIndex(); pixelY++) {
-            for (int pixelX = 0; pixelX < image.width(); pixelX++) {
-                Pixel smoothedPixel = calculateSmoothedPixel(pixelX, pixelY, image, sourcePixels);
-                image.setPixel(pixelX, pixelY, smoothedPixel);
-            }
-        }
-    }
-
-    private List<WorkRange> createRowRanges(FractalImage image) {
-        return workRangePartitioner.partition(image.height(), taskRunner.getThreadCount());
-    }
-
-    private void completeTasks(List<Callable<Void>> tasks) {
-        try (TaskBatch<Void> taskBatch = taskRunner.execute(tasks)) {
-            while (taskBatch.hasNextResult()) taskBatch.takeNextResult();
+    private void processLine(FractalImage image, Pixel[] sourcePixels, int lineIndex) {
+        for (int pixelX = 0; pixelX < image.width(); pixelX++) {
+            Pixel smoothedPixel = calculateSmoothedPixel(pixelX, lineIndex, image, sourcePixels);
+            image.setPixel(pixelX, lineIndex, smoothedPixel);
         }
     }
 
@@ -71,14 +42,14 @@ public final class SmoothingStep implements ImageProcessingStep {
         int blueSum = 0;
         int appliedWeightSum = 0;
 
-        for (int verticalOffset = -kernelRadius; verticalOffset <= kernelRadius; verticalOffset++) {
-            for (int horizontalOffset = -kernelRadius; horizontalOffset <= kernelRadius; horizontalOffset++) {
+        for (int verticalOffset = -KERNEL_RADIUS; verticalOffset <= KERNEL_RADIUS; verticalOffset++) {
+            for (int horizontalOffset = -KERNEL_RADIUS; horizontalOffset <= KERNEL_RADIUS; horizontalOffset++) {
                 int neighborPixelX = centerPixelX + horizontalOffset;
                 int neighborPixelY = centerPixelY + verticalOffset;
 
                 if (!image.contains(neighborPixelX, neighborPixelY))continue;
 
-                int kernelWeight = GAUSSIAN_KERNEL[verticalOffset + kernelRadius][horizontalOffset + kernelRadius];
+                int kernelWeight = GAUSSIAN_KERNEL[verticalOffset + KERNEL_RADIUS][horizontalOffset + KERNEL_RADIUS];
                 Pixel neighborPixel = sourcePixels[neighborPixelY * image.width() + neighborPixelX];
 
                 redSum += neighborPixel.red() * kernelWeight;

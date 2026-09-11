@@ -1,7 +1,6 @@
 package application.rendering.imageState;
 
-import application.execution.TaskRunner;
-import application.execution.WorkRangePartitioner;
+import application.execution.LineTaskExecutor;
 import application.model.FractalImage;
 import application.rendering.imageState.merge.LayerMerger;
 import org.springframework.stereotype.Component;
@@ -10,17 +9,15 @@ import org.springframework.stereotype.Component;
 public final class ImageStateCollectorFactory {
     private final LayerMerger layerMerger;
     private final LayerToImageMapper layerToImageMapper;
-    private final WorkRangePartitioner workRangePartitioner;
-    private final TaskRunner taskRunner;
+    private final LineTaskExecutor lineTaskExecutor;
 
-    public ImageStateCollectorFactory(LayerMerger layerMerger, LayerToImageMapper layerToImageMapper, WorkRangePartitioner workRangePartitioner, TaskRunner taskRunner) {
+    public ImageStateCollectorFactory(LayerMerger layerMerger, LayerToImageMapper layerToImageMapper, LineTaskExecutor lineTaskExecutor) {
         this.layerMerger = layerMerger;
         this.layerToImageMapper = layerToImageMapper;
-        this.workRangePartitioner = workRangePartitioner;
-        this.taskRunner = taskRunner;
+        this.lineTaskExecutor = lineTaskExecutor;
     }
 
     public ImageStateCollector create(FractalImage canvas) {
-        return new ImageStateCollector(canvas, layerMerger, layerToImageMapper, workRangePartitioner, taskRunner);
+        return new ImageStateCollector(canvas, layerMerger, layerToImageMapper, lineTaskExecutor);
     }
 }

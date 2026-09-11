@@ -1,18 +1,13 @@
 package application.rendering.imageState.merge;
 
-import application.execution.WorkRange;
 import application.rendering.Layer;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class LayerRowsMerger implements LayerMerger {
     @Override
-    public void merge(Layer destinationLayer, Layer sourceLayer, WorkRange rowRange) {
-        for (int rowIndex = rowRange.firstIndex(); rowIndex < rowRange.endIndex(); rowIndex++) mergeRow(destinationLayer, sourceLayer, rowIndex);
-    }
-
-    private void mergeRow(Layer destinationLayer, Layer sourceLayer, int rowIndex) {
-        int firstPixelIndex = rowIndex * sourceLayer.width();
+    public void mergeLine(Layer destinationLayer, Layer sourceLayer, int lineIndex) {
+        int firstPixelIndex = lineIndex * sourceLayer.width();
         int endPixelIndex = firstPixelIndex + sourceLayer.width();
 
         for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) mergePixel(destinationLayer, sourceLayer, pixelIndex);

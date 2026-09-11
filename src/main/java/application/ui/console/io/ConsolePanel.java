@@ -70,18 +70,19 @@ public final class ConsolePanel {
         while (true) {
             try {
                 int[] selectedOptionNumbers = parser.parseIntArray(input.readLine(), optionRestrictions);
-                List<String> selectedOptions = new ArrayList<>(selectedOptionNumbers.length);
-
-                for (int selectedOptionNumber : selectedOptionNumbers) {
-                    if (!optionRestrictions.contains(selectedOptionNumber))throw new IllegalArgumentException("Option number is outside the allowed range");
-                    selectedOptions.add(options.get(selectedOptionNumber - 1));
-                }
-
-                return List.copyOf(selectedOptions);
+                return resolveSelectedOptions(selectedOptionNumbers, options);
             } catch (IllegalArgumentException exception) {
                 showError("укажите один или несколько номеров из предложенного диапазона");
             }
         }
+    }
+
+    private List<String> resolveSelectedOptions(int[] selectedOptionNumbers, List<String> options) {
+        List<String> selectedOptions = new ArrayList<>(selectedOptionNumbers.length);
+
+        for (int selectedOptionNumber : selectedOptionNumbers) selectedOptions.add(options.get(selectedOptionNumber - 1));
+
+        return List.copyOf(selectedOptions);
     }
 
     public void printNumberedOptions(List<String> options) {

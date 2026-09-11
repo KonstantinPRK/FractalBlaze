@@ -25,7 +25,10 @@ public final class FractalBlazeApplication {
 
     public void start() {
         GenerationConfiguration configuration = userInterface.requestConfiguration();
+        start(configuration);
+    }
 
+    public void start(GenerationConfiguration configuration) {
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
 
         FractalImage renderedImage = imageRenderer.render(

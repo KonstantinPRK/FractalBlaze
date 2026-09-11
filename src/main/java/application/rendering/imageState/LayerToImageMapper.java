@@ -1,6 +1,5 @@
 package application.rendering.imageState;
 
-import application.execution.WorkRange;
 import application.model.FractalImage;
 import application.model.Pixel;
 import application.rendering.Layer;
@@ -8,12 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public final class LayerToImageMapper {
-    public void mapRows(Layer layer, FractalImage image, WorkRange rowRange) {
-        for (int rowIndex = rowRange.firstIndex(); rowIndex < rowRange.endIndex(); rowIndex++) mapRow(layer, image, rowIndex);
-    }
-
-    private void mapRow(Layer layer, FractalImage image, int rowIndex) {
-        int firstPixelIndex = rowIndex * layer.width();
+    public void mapLine(Layer layer, FractalImage image, int lineIndex) {
+        int firstPixelIndex = lineIndex * layer.width();
         int endPixelIndex = firstPixelIndex + layer.width();
 
         for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) mapPixel(layer, image, pixelIndex);
