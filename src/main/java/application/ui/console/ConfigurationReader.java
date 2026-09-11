@@ -4,14 +4,15 @@ import application.configuration.restriction.GenerationInputRestrictions;
 import application.configuration.restriction.ImageSizeRestrictions;
 import application.configuration.restriction.TransformationInputRestrictions;
 import application.configuration.setting.GenerationSettings;
-import application.ui.console.io.ConsolePanel;
-import application.model.Space;
-import application.rendering.renderer.Renderer;
-import application.rendering.transformation.Transformation;
 import application.configuration.GenerationConfiguration;
 import application.configuration.catalog.Catalog;
+import application.execution.ExecutionMode;
+import application.execution.TaskRunner;
 import application.model.ImageSize;
+import application.model.Space;
 import application.model.TransformationParameters;
+import application.rendering.transformation.Transformation;
+import application.ui.console.io.ConsolePanel;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageWriter;
@@ -20,20 +21,23 @@ import java.util.List;
 
 @Component
 public class ConfigurationReader {
-    private final Catalog<Renderer> rendererCatalog;
+    private final ConsolePanel consolePanel;
+
     private final Catalog<ImageWriter> imageWriterCatalog;
     private final Catalog<Transformation> transformationCatalog;
-    private final ConsolePanel consolePanel;
+    private final TaskRunner taskRunner;
+
     private final ImageSizeRestrictions imageSizeRestrictions;
     private final GenerationInputRestrictions generationInputRestrictions;
     private final TransformationInputRestrictions transformationInputRestrictions;
     private final GenerationSettings generationSettings;
 
-    public ConfigurationReader(Catalog<Renderer> rendererCatalog, Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
-        this.rendererCatalog = rendererCatalog;
+
+    public ConfigurationReader(Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, TaskRunner taskRunner, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
         this.imageWriterCatalog = imageWriterCatalog;
         this.transformationCatalog = transformationCatalog;
         this.consolePanel = consolePanel;
+        this.taskRunner = taskRunner;
         this.imageSizeRestrictions = imageSizeRestrictions;
         this.generationInputRestrictions = generationInputRestrictions;
         this.transformationInputRestrictions = transformationInputRestrictions;
@@ -47,11 +51,11 @@ public class ConfigurationReader {
         Space space = requestSpace();
         int iterationCount = requestIterationCount();
         int randomSeed = requestRandomSeed();
-        Renderer renderer = requestRenderer();
         TransformationParameters transformationParameters = requestTransformationParameters();
         List<Transformation> transformations = requestTransformationsList();
+        taskRunner.selectMode(requestExecutionMode());
 
-        return new GenerationConfiguration(outputPath, imageSize, imageWriter, space, iterationCount, randomSeed, renderer, transformationParameters, transformations);
+        return new GenerationConfiguration(outputPath, imageSize, imageWriter, space, iterationCount, randomSeed, transformationParameters, transformations);
     }
 
     private Path requestOutputPath() {
@@ -92,11 +96,15 @@ public class ConfigurationReader {
         return consolePanel.requestInt("Введите начальное значение генератора случайных чисел", "42", generationInputRestrictions.randomSeed());
     }
 
-    private Renderer requestRenderer() {
-        List<String> rendererNames = rendererCatalog.showCatalog();
-        String selectedRendererName = consolePanel.requestOption("Выберите способ генерации изображения", rendererNames);
+    private ExecutionMode requestExecutionMode() {
+        List<ExecutionMode> executionModes = List.of(ExecutionMode.values());
+        List<String> modeNames = executionModes.stream().map(ExecutionMode::getDisplayName).toList();
+        String selectedModeName = consolePanel.requestOption("Выберите режим выполнения", modeNames);
 
-        return rendererCatalog.getAlgorithm(selectedRendererName);
+        return executionModes.stream()
+                .filter(executionMode -> executionMode.getDisplayName().equals(selectedModeName))
+                .findFirst()
+                .orElseThrow();
     }
 
     private TransformationParameters requestTransformationParameters() {

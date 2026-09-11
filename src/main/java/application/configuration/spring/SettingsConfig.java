@@ -5,11 +5,12 @@ import application.configuration.setting.ConsoleLayoutSettings;
 import application.configuration.setting.GammaCorrectionSettings;
 import application.configuration.setting.GenerationSettings;
 import application.configuration.setting.OutputFileSettings;
-import application.configuration.setting.RenderingSettings;
 import application.configuration.setting.SmoothingSettings;
+import application.configuration.setting.TaskRunnerSettings;
 import application.configuration.setting.TrajectorySettings;
 import application.configuration.setting.TransformationCalculationSettings;
 import application.model.Point;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,10 +32,11 @@ public class SettingsConfig {
     }
 
     @Bean
-    public RenderingSettings renderingSettings() {
+    public TaskRunnerSettings taskRunnerSettings(@Value("${fractal.execution.thread-count:0}") int configuredThreadCount) {
         int availableProcessorCount = Runtime.getRuntime().availableProcessors();
+        int threadCount = configuredThreadCount > 0 ? configuredThreadCount : availableProcessorCount;
 
-        return new RenderingSettings(availableProcessorCount);
+        return new TaskRunnerSettings(threadCount);
     }
 
     @Bean

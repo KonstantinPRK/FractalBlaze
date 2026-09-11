@@ -1,10 +1,17 @@
 package application.image.processing.step;
 
 import application.configuration.setting.SmoothingSettings;
+import application.execution.TaskBatch;
+import application.execution.TaskRunner;
+import application.execution.WorkRange;
+import application.execution.WorkRangePartitioner;
 import application.model.FractalImage;
 import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.concurrent.Callable;
 
 @Component
 @Order(2)
@@ -16,20 +23,45 @@ public final class SmoothingStep implements ImageProcessingStep {
     };
 
     private final int kernelRadius;
+    private final TaskRunner taskRunner;
+    private final WorkRangePartitioner workRangePartitioner;
 
-    public SmoothingStep(SmoothingSettings settings) {
+    public SmoothingStep(SmoothingSettings settings, TaskRunner taskRunner, WorkRangePartitioner workRangePartitioner) {
         kernelRadius = settings.kernelRadius();
+        this.taskRunner = taskRunner;
+        this.workRangePartitioner = workRangePartitioner;
     }
 
     @Override
     public void process(FractalImage image) {
         Pixel[] sourcePixels = image.data().clone();
 
-        for (int pixelY = 0; pixelY < image.height(); pixelY++) {
+        List<Callable<Void>> smoothingTasks = createRowRanges(image).stream()
+                .map(rowRange -> (Callable<Void>) () -> {
+                    processRows(image, sourcePixels, rowRange);
+                    return null;
+                })
+                .toList();
+
+        completeTasks(smoothingTasks);
+    }
+
+    private void processRows(FractalImage image, Pixel[] sourcePixels, WorkRange rowRange) {
+        for (int pixelY = rowRange.firstIndex(); pixelY < rowRange.endIndex(); pixelY++) {
             for (int pixelX = 0; pixelX < image.width(); pixelX++) {
                 Pixel smoothedPixel = calculateSmoothedPixel(pixelX, pixelY, image, sourcePixels);
                 image.setPixel(pixelX, pixelY, smoothedPixel);
             }
+        }
+    }
+
+    private List<WorkRange> createRowRanges(FractalImage image) {
+        return workRangePartitioner.partition(image.height(), taskRunner.getThreadCount());
+    }
+
+    private void completeTasks(List<Callable<Void>> tasks) {
+        try (TaskBatch<Void> taskBatch = taskRunner.execute(tasks)) {
+            while (taskBatch.hasNextResult()) taskBatch.takeNextResult();
         }
     }
 

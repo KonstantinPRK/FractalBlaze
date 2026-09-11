@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public final class SequentialImagePostProcessor implements ImagePostProcessor {
+public final class ImageProcessingPipeline implements ImagePostProcessor {
     private final List<ImageProcessingStep> processingSteps;
 
-    public SequentialImagePostProcessor(List<ImageProcessingStep> processingSteps) {
+    public ImageProcessingPipeline(List<ImageProcessingStep> processingSteps) {
         this.processingSteps = List.copyOf(processingSteps);
     }
 

@@ -1,7 +1,6 @@
 package application.configuration;
 
 import application.model.ImageSize;
-import application.rendering.renderer.Renderer;
 import application.model.Space;
 import application.rendering.transformation.Transformation;
 import application.model.TransformationParameters;
@@ -17,6 +16,5 @@ public record GenerationConfiguration(
         Space visibleSpace,
         Integer iterationCount,
         Integer randomSeed,
-        Renderer renderer,
         TransformationParameters transformationParameters,
         List<Transformation> transformations) {}

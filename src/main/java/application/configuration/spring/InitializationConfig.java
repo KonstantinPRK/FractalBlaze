@@ -1,6 +1,7 @@
 package application.configuration.spring;
 
-import application.configuration.setting.RenderingSettings;
+import application.configuration.setting.TaskRunnerSettings;
+import application.execution.TaskRunner;
 import application.image.encoding.ImageFormat;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,8 +10,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import java.io.PrintStream;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Configuration
 public class InitializationConfig {
@@ -24,9 +23,9 @@ public class InitializationConfig {
         return System.out;
     }
 
-    @Bean(name = "renderingExecutor", destroyMethod = "shutdown")
-    public ExecutorService renderingExecutor(RenderingSettings settings) {
-        return Executors.newFixedThreadPool(settings.threadCount());
+    @Bean(destroyMethod = "close")
+    public TaskRunner taskRunner(TaskRunnerSettings settings) {
+        return new TaskRunner(settings.threadCount());
     }
 
     @Bean(name = "JPEG", destroyMethod = "dispose")

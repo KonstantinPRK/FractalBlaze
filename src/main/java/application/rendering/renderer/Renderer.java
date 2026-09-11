@@ -8,8 +8,6 @@ import application.model.Space;
 import java.util.List;
 
 public interface Renderer {
-    String getName();
-
     FractalImage render(
             FractalImage canvas,
             Space space,
