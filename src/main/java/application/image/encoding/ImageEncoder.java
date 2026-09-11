@@ -17,8 +17,8 @@ import java.util.Objects;
 @Component
 public final class ImageEncoder {
     public ImageFile encode(FractalImage fractalImage, ImageWriter selectedImageWriter) {
-        Objects.requireNonNull(fractalImage, "Fractal image must not be null");
-        Objects.requireNonNull(selectedImageWriter, "Image writer must not be null");
+        Objects.requireNonNull(fractalImage, "Фрактальное изображение не должно быть null");
+        Objects.requireNonNull(selectedImageWriter, "Средство записи изображения не должно быть null");
 
         BufferedImage bufferedImage = convertToBufferedImage(fractalImage);
         byte[] imageFileContent = encodeImage(bufferedImage, selectedImageWriter);
@@ -60,7 +60,7 @@ public final class ImageEncoder {
 
             return imageBytes.toByteArray();
         } catch (IOException exception) {
-            throw new UncheckedIOException("Failed to create image file", exception);
+            throw new UncheckedIOException("Не удалось создать файл изображения", exception);
         } finally {
             selectedImageWriter.reset();
         }

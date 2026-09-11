@@ -12,25 +12,21 @@ import org.springframework.stereotype.Component;
 @Component
 public final class FractalBlazeApplication {
     private final ConsoleController userInterface;
-    private final Renderer imageRenderer;
     private final ImagePostProcessor imagePostProcessor;
     private final ImageEncoder imageEncoder;
 
-    public FractalBlazeApplication(ConsoleController userInterface, Renderer imageRenderer, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder) {
+    public FractalBlazeApplication(ConsoleController userInterface, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder) {
         this.userInterface = userInterface;
-        this.imageRenderer = imageRenderer;
         this.imagePostProcessor = imagePostProcessor;
         this.imageEncoder = imageEncoder;
     }
 
     public void start() {
         GenerationConfiguration configuration = userInterface.requestConfiguration();
-        start(configuration);
-    }
 
-    public void start(GenerationConfiguration configuration) {
+        Renderer imageRenderer = configuration.renderer();
+
         FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
-
         FractalImage renderedImage = imageRenderer.render(
                 emptyCanvas,
                 configuration.visibleSpace(),

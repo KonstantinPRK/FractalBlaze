@@ -1,7 +1,6 @@
 package application.image.processing.step;
 
 import application.execution.LineTaskExecutor;
-import application.execution.WorkRange;
 import application.model.FractalImage;
 import application.model.Pixel;
 import org.springframework.core.annotation.Order;
@@ -26,17 +25,17 @@ public final class LogDensityStep implements ImageProcessingStep {
     }
 
     private int findMaximumHitCount(FractalImage image) {
-        return lineTaskExecutor.executeRanges(image.height(), lineRange -> findMaximumHitCount(image, lineRange))
+        return lineTaskExecutor.executeRanges(image.height(), (firstLine, endLine) -> findMaximumHitCount(image, firstLine, endLine))
                 .stream()
                 .mapToInt(Integer::intValue)
                 .max()
                 .orElse(0);
     }
 
-    private int findMaximumHitCount(FractalImage image, WorkRange lineRange) {
+    private int findMaximumHitCount(FractalImage image, int firstLine, int endLine) {
         int maximumHitCount = 0;
 
-        for (int lineIndex = lineRange.firstIndex(); lineIndex < lineRange.endIndex(); lineIndex++) {
+        for (int lineIndex = firstLine; lineIndex < endLine; lineIndex++) {
             int firstPixelIndex = lineIndex * image.width();
             int endPixelIndex = firstPixelIndex + image.width();
 

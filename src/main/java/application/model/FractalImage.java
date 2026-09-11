@@ -21,7 +21,7 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
     }
 
     public boolean contains(int pixelX, int pixelY) {
-        return pixelX >= 0
+        return     pixelX >= 0
                 && pixelX < width()
                 && pixelY >= 0
                 && pixelY < height();
@@ -32,11 +32,11 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
     }
 
     public void setPixel(int pixelX, int pixelY, Pixel pixel) {
-        data[pixelIndex(pixelX, pixelY)] = Objects.requireNonNull(pixel);
+        data[pixelIndex(pixelX, pixelY)] = Objects.requireNonNull(pixel, "Пиксель не должен быть null");
     }
 
     private int pixelIndex(int pixelX, int pixelY) {
-        if (!contains(pixelX, pixelY))throw new IndexOutOfBoundsException("Pixel outside image: " + pixelX + ", " + pixelY);
+        if (!contains(pixelX, pixelY))throw new IndexOutOfBoundsException("Пиксель находится за пределами изображения: " + pixelX + ", " + pixelY);
 
         return pixelY * width() + pixelX;
     }

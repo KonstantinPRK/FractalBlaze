@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class RestrictionsConfig {
     @Bean
     public ImageSizeRestrictions imageSizeRestrictions() {
-        return new ImageSizeRestrictions(new IntegerRange(1280, 1920), new IntegerRange(1280, 1920));
+        return new ImageSizeRestrictions(new IntegerRange(1280, 7680), new IntegerRange(1280, 7680));
     }
 
     @Bean

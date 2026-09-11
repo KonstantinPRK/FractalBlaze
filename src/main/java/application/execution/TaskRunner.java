@@ -1,11 +1,14 @@
 package application.execution;
 
-import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class TaskRunner implements AutoCloseable {
+    @FunctionalInterface
+    public interface RangeTask<TaskResult> {
+        TaskResult execute(int firstIndex, int endIndex);
+    }
+
     private final int CONFIGURED_THREAD_COUNT;
     private final ExecutorService executor;
     private int activeThreadCount;
@@ -24,11 +27,18 @@ public final class TaskRunner implements AutoCloseable {
         return activeThreadCount;
     }
 
-    public <TaskResult> TaskBatch<TaskResult> execute(List<? extends Callable<TaskResult>> tasks) {
+    public <TaskResult> TaskBatch<TaskResult> executeRanges(int itemCount, RangeTask<TaskResult> rangeTask) {
         TaskBatch<TaskResult> taskBatch = new TaskBatch<>(executor);
 
         try {
-            for (Callable<TaskResult> task : tasks) taskBatch.submit(task);
+            int taskCount = Math.min(itemCount, activeThreadCount);
+
+            for (int taskIndex = 0; taskIndex < taskCount; taskIndex++) {
+                int firstIndex = (int) ((long) itemCount * taskIndex / taskCount);
+                int endIndex = (int) ((long) itemCount * (taskIndex + 1) / taskCount);
+                taskBatch.submit(() -> rangeTask.execute(firstIndex, endIndex));
+            }
+
             return taskBatch;
         } catch (RuntimeException | Error exception) {
             taskBatch.close();

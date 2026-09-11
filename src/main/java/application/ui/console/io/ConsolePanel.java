@@ -13,8 +13,10 @@ import java.util.Objects;
 public final class ConsolePanel {
     private final Output output;
     private final Input input;
+
     private final ConsoleInputParser parser;
     private final ConsoleLayoutSettings layoutSettings;
+
 
     public ConsolePanel(Output output, Input input, ConsoleInputParser parser, ConsoleLayoutSettings layoutSettings) {
         this.output = output;
@@ -23,20 +25,13 @@ public final class ConsolePanel {
         this.layoutSettings = layoutSettings;
     }
 
+
     public void showMessage(String message) {
         output.printEmptyLines(layoutSettings.emptyLinesBeforeRequest());
         output.printLine(message);
     }
 
-    public String requestText(String parameterName, String example) {
-        showRequest(parameterName, example, null, null);
 
-        while (true) {
-            String enteredValue = input.readLine();
-            if (enteredValue != null && !enteredValue.isBlank())return enteredValue.trim();
-            showError("значение не должно быть пустым");
-        }
-    }
 
     public Path requestPath(String parameterName, String example) {
         showRequest(parameterName, example, null, null);
@@ -118,7 +113,7 @@ public final class ConsolePanel {
     }
 
     private void requireOptions(List<String> options) {
-        Objects.requireNonNull(options, "Options must not be null");
-        if (options.isEmpty())throw new IllegalArgumentException("Options must not be empty");
+        Objects.requireNonNull(options, "Список вариантов не должен быть null");
+        if (options.isEmpty())throw new IllegalArgumentException("Список вариантов не должен быть пустым");
     }
 }

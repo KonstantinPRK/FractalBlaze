@@ -3,11 +3,17 @@ package application;
 import application.configuration.GenerationConfiguration;
 import application.execution.ExecutionMode;
 import application.execution.TaskRunner;
+import application.image.encoding.ImageEncoder;
+import application.image.encoding.ImageFile;
+import application.image.processing.ImagePostProcessor;
+import application.model.FractalImage;
 import application.model.ImageSize;
 import application.model.Point;
 import application.model.Space;
 import application.model.TransformationParameters;
+import application.rendering.renderer.Renderer;
 import application.rendering.transformation.Transformation;
+import application.ui.console.ImageFileSaver;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +31,23 @@ import java.util.concurrent.TimeUnit;
 class FractalBlazePerformanceTest {
     private record PerformanceResult(int threadCount, long executionTimeInMilliseconds) {}
 
-    private final FractalBlazeApplication application;
     private final TaskRunner taskRunner;
+    private final ImagePostProcessor imagePostProcessor;
+    private final ImageEncoder imageEncoder;
+    private final ImageFileSaver imageFileSaver;
     private final ImageWriter imageWriter;
+    private final Renderer renderer;
     private final List<Transformation> transformations;
     private final PrintStream printer;
 
     @Autowired
-    FractalBlazePerformanceTest(FractalBlazeApplication application, TaskRunner taskRunner, @Qualifier("PNG") ImageWriter imageWriter, List<Transformation> transformations, PrintStream printer) {
-        this.application = application;
+    FractalBlazePerformanceTest(TaskRunner taskRunner, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder, ImageFileSaver imageFileSaver, @Qualifier("PNG") ImageWriter imageWriter, Renderer renderer, List<Transformation> transformations, PrintStream printer) {
         this.taskRunner = taskRunner;
+        this.imagePostProcessor = imagePostProcessor;
+        this.imageEncoder = imageEncoder;
+        this.imageFileSaver = imageFileSaver;
         this.imageWriter = imageWriter;
+        this.renderer = renderer;
         this.transformations = transformations;
         this.printer = printer;
     }
@@ -58,10 +70,11 @@ class FractalBlazePerformanceTest {
 
         return new GenerationConfiguration(
                 downloadsDirectory,
-                new ImageSize(1280, 1280),
+                new ImageSize(4320, 7680),
                 imageWriter,
+                renderer,
                 new Space(new Point(0.0, 0.0), 2.0, 2.0),
-                10_000_000,
+                50_000_000,
                 42,
                 new TransformationParameters(1.0, Math.toRadians(20), -0.5, 0.5),
                 List.copyOf(transformations));
@@ -71,10 +84,25 @@ class FractalBlazePerformanceTest {
         taskRunner.selectMode(executionMode);
 
         long startTime = System.nanoTime();
-        application.start(configuration);
+        executeFullGenerationCycle(configuration);
         long elapsedTime = System.nanoTime() - startTime;
 
         return new PerformanceResult(taskRunner.getThreadCount(), TimeUnit.NANOSECONDS.toMillis(elapsedTime));
+    }
+
+    private void executeFullGenerationCycle(GenerationConfiguration configuration) {
+        FractalImage emptyCanvas = FractalImage.create(configuration.imageSize());
+        FractalImage renderedImage = configuration.renderer().render(
+                emptyCanvas,
+                configuration.visibleSpace(),
+                configuration.transformationParameters(),
+                configuration.transformations(),
+                configuration.iterationCount(),
+                configuration.randomSeed());
+
+        FractalImage correctedImage = imagePostProcessor.process(renderedImage);
+        ImageFile imageFile = imageEncoder.encode(correctedImage, configuration.imageWriter());
+        imageFileSaver.save(imageFile, configuration.outputPath());
     }
 
     private void printSystemConfiguration() {

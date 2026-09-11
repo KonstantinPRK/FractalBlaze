@@ -11,6 +11,7 @@ import application.execution.TaskRunner;
 import application.model.ImageSize;
 import application.model.Space;
 import application.model.TransformationParameters;
+import application.rendering.renderer.Renderer;
 import application.rendering.transformation.Transformation;
 import application.ui.console.io.ConsolePanel;
 import org.springframework.stereotype.Component;
@@ -21,11 +22,12 @@ import java.util.List;
 
 @Component
 public class ConfigurationReader {
+    private final TaskRunner taskRunner;
     private final ConsolePanel consolePanel;
 
     private final Catalog<ImageWriter> imageWriterCatalog;
+    private final Catalog<Renderer> rendererCatalog;
     private final Catalog<Transformation> transformationCatalog;
-    private final TaskRunner taskRunner;
 
     private final ImageSizeRestrictions imageSizeRestrictions;
     private final GenerationInputRestrictions generationInputRestrictions;
@@ -33,8 +35,9 @@ public class ConfigurationReader {
     private final GenerationSettings generationSettings;
 
 
-    public ConfigurationReader(Catalog<ImageWriter> imageWriterCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, TaskRunner taskRunner, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
+    public ConfigurationReader(Catalog<ImageWriter> imageWriterCatalog, Catalog<Renderer> rendererCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, TaskRunner taskRunner, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
         this.imageWriterCatalog = imageWriterCatalog;
+        this.rendererCatalog = rendererCatalog;
         this.transformationCatalog = transformationCatalog;
         this.consolePanel = consolePanel;
         this.taskRunner = taskRunner;
@@ -48,6 +51,7 @@ public class ConfigurationReader {
         Path outputPath = requestOutputPath();
         ImageSize imageSize = requestImageSize();
         ImageWriter imageWriter = requestImageWriter();
+        Renderer renderer = requestRenderer();
         Space space = requestSpace();
         int iterationCount = requestIterationCount();
         int randomSeed = requestRandomSeed();
@@ -55,7 +59,7 @@ public class ConfigurationReader {
         List<Transformation> transformations = requestTransformationsList();
         taskRunner.selectMode(requestExecutionMode());
 
-        return new GenerationConfiguration(outputPath, imageSize, imageWriter, space, iterationCount, randomSeed, transformationParameters, transformations);
+        return new GenerationConfiguration(outputPath, imageSize, imageWriter, renderer, space, iterationCount, randomSeed, transformationParameters, transformations);
     }
 
     private Path requestOutputPath() {
@@ -75,6 +79,13 @@ public class ConfigurationReader {
         String selectedFormatName = consolePanel.requestOption("Выберите формат изображения", formatNames);
 
         return imageWriterCatalog.getAlgorithm(selectedFormatName);
+    }
+
+    private Renderer requestRenderer() {
+        List<String> rendererNames = rendererCatalog.showCatalog();
+        String selectedRendererName = consolePanel.requestOption("Выберите алгоритм генерации изображения", rendererNames);
+
+        return rendererCatalog.getAlgorithm(selectedRendererName);
     }
 
     private Space requestSpace() {
@@ -104,7 +115,7 @@ public class ConfigurationReader {
         return executionModes.stream()
                 .filter(executionMode -> executionMode.getDisplayName().equals(selectedModeName))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalStateException("Не удалось определить выбранный режим выполнения"));
     }
 
     private TransformationParameters requestTransformationParameters() {
