@@ -1,9 +1,6 @@
 package application.model;
 
-import application.model.ImageSize;
-
 import java.util.Arrays;
-import java.util.Objects;
 
 public record FractalImage(Pixel[] data, ImageSize imageSize) {
     public static FractalImage create(ImageSize imageSize) {
@@ -32,12 +29,10 @@ public record FractalImage(Pixel[] data, ImageSize imageSize) {
     }
 
     public void setPixel(int pixelX, int pixelY, Pixel pixel) {
-        data[pixelIndex(pixelX, pixelY)] = Objects.requireNonNull(pixel, "Пиксель не должен быть null");
+        data[pixelIndex(pixelX, pixelY)] = pixel;
     }
 
     private int pixelIndex(int pixelX, int pixelY) {
-        if (!contains(pixelX, pixelY))throw new IndexOutOfBoundsException("Пиксель находится за пределами изображения: " + pixelX + ", " + pixelY);
-
         return pixelY * width() + pixelX;
     }
 }

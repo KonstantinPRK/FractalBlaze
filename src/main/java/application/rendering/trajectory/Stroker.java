@@ -29,14 +29,14 @@ public class Stroker {
         Layer layer = new Layer(context.imageWidth(), context.imageHeight());
 
         for (int trajectoryIndex = firstTrajectoryIndex; trajectoryIndex < endTrajectoryIndex; trajectoryIndex++) {
-            if (Thread.currentThread().isInterrupted())throw new CancellationException("Отрисовка прервана");
+            if (Thread.currentThread().isInterrupted()) throw new CancellationException("Отрисовка прервана");
 
             int firstIteration = trajectoryIndex * ITERATIONS_PER_TRAJECTORY;
             int remainingIterationCount = context.iterationCount() - firstIteration;
             int currentTrajectoryIterationCount = Math.min(ITERATIONS_PER_TRAJECTORY, remainingIterationCount);
 
-            SplittableRandom trajectoryRandom = new SplittableRandom(context.randomSeed() + trajectoryIndex);
-            trajectoryDrawer.drawTrajectory(layer, context, currentTrajectoryIterationCount, trajectoryRandom);
+            SplittableRandom random = new SplittableRandom(context.randomSeed() + trajectoryIndex);
+            trajectoryDrawer.drawTrajectory(layer, context, currentTrajectoryIterationCount, random);
         }
 
         return layer;

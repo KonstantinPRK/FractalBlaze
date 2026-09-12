@@ -26,9 +26,6 @@ public final class Layer {
         return height;
     }
 
-    public int pixelCount() {
-        return hitCounts.length;
-    }
 
     public boolean hasHits() {
         return hasHits;
@@ -56,10 +53,6 @@ public final class Layer {
         redSums[pixelIndex] += redSum;
         greenSums[pixelIndex] += greenSum;
         blueSums[pixelIndex] += blueSum;
-    }
-
-    public void markAsContainingHits() {
-        hasHits = true;
     }
 
     public int hitCount(int pixelIndex) {

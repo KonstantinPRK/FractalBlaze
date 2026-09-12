@@ -60,13 +60,7 @@ public final class FractalFlameRenderer implements Renderer {
         int trajectoryCount = stroker.calculateTrajectoryCount(context);
         ImageStateCollector imageStateCollector = imageStateCollectorFactory.create(canvas);
 
-        try (TaskBatch<Layer> renderedLayers = taskRunner.executeRanges
-                (
-                             trajectoryCount,
-                             (firstTrajectory, endTrajectory)
-                             -> stroker.spray(context, firstTrajectory, endTrajectory)
-                )
-            )
+        try (TaskBatch<Layer> renderedLayers = taskRunner.executeRanges(trajectoryCount, (firstTrajectory, endTrajectory) -> stroker.spray(context, firstTrajectory, endTrajectory)))
         {
             while (renderedLayers.hasNextResult()) imageStateCollector.collectLayer(renderedLayers.takeNextResult());
         }

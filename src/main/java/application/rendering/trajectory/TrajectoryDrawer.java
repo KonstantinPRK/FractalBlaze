@@ -69,12 +69,13 @@ public class TrajectoryDrawer {
 
             currentPoint = pointTransformer.applyTransformation(currentPoint, selectedTransformation, context.transformationParameters(), context.cosOfRotation(), context.sinOfRotation());
 
-            if (warmUpIteration == 0)currentColor = context.transformationColors()[transformationIndex];
+            if (warmUpIteration == 0) currentColor = context.transformationColors()[transformationIndex];
             else currentColor = colorPalette.mixColors(currentColor, context.transformationColors()[transformationIndex]);
         }
 
         return new TrajectoryState(currentPoint, currentColor);
     }
+
 
     private Point createRandomPoint(Space space, SplittableRandom random) {
         double leftBorder = space.focusPoint().x() - space.visibleWorldWidth() / 2;
@@ -85,6 +86,7 @@ public class TrajectoryDrawer {
 
         return new Point(randomX, randomY);
     }
+
 
     private void recordPointHit(Point point, int color, Layer layer, RenderingContext context) {
         boolean pointIsOutsideVisibleSpace = !context.space().contains(point);

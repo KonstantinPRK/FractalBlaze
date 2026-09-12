@@ -51,33 +51,26 @@ public final class ConsolePanel {
     }
 
     public String requestOption(String parameterName, List<String> options) {
-        requireOptions(options);
         IntegerRange optionRestrictions = new IntegerRange(1, options.size());
         showRequest(parameterName, null, options, optionRestrictions);
         return options.get(readInt(optionRestrictions) - 1);
     }
 
     public List<String> requestOptions(String parameterName, String example, List<String> options) {
-        requireOptions(options);
         IntegerRange optionRestrictions = new IntegerRange(1, options.size());
         showRequest(parameterName, example, options, optionRestrictions);
 
         while (true) {
             try {
                 int[] selectedOptionNumbers = parser.parseIntArray(input.readLine(), optionRestrictions);
-                return resolveSelectedOptions(selectedOptionNumbers, options);
+                List<String> selectedOptions = new ArrayList<>(selectedOptionNumbers.length);
+                for (int selectedOptionNumber : selectedOptionNumbers) selectedOptions.add(options.get(selectedOptionNumber - 1));
+                return selectedOptions;
+
             } catch (IllegalArgumentException exception) {
                 showError("укажите один или несколько номеров из предложенного диапазона");
             }
         }
-    }
-
-    private List<String> resolveSelectedOptions(int[] selectedOptionNumbers, List<String> options) {
-        List<String> selectedOptions = new ArrayList<>(selectedOptionNumbers.length);
-
-        for (int selectedOptionNumber : selectedOptionNumbers) selectedOptions.add(options.get(selectedOptionNumber - 1));
-
-        return List.copyOf(selectedOptions);
     }
 
     public void printNumberedOptions(List<String> options) {
@@ -88,7 +81,7 @@ public final class ConsolePanel {
         while (true) {
             try {
                 int enteredNumber = parser.parseInt(input.readLine());
-                if (restrictions.contains(enteredNumber))return enteredNumber;
+                if (restrictions.contains(enteredNumber)) return enteredNumber;
                 showError("число находится вне допустимого диапазона");
             } catch (IllegalArgumentException exception) {
                 showError("введено не целое число");
@@ -112,8 +105,4 @@ public final class ConsolePanel {
         output.print(layoutSettings.inputPrompt());
     }
 
-    private void requireOptions(List<String> options) {
-        Objects.requireNonNull(options, "Список вариантов не должен быть null");
-        if (options.isEmpty())throw new IllegalArgumentException("Список вариантов не должен быть пустым");
-    }
 }
