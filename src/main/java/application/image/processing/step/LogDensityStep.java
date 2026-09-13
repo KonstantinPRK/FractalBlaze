@@ -2,7 +2,6 @@ package application.image.processing.step;
 
 import application.execution.LineTaskExecutor;
 import application.model.FractalImage;
-import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +17,16 @@ public final class LogDensityStep implements ImageProcessingStep {
     @Override
     public void process(FractalImage image) {
         int maxHitCount = findMaximumHitCount(image);
-        if (maxHitCount == 0)return;
+        if (maxHitCount == 0) return;
 
         double maxDensity = Math.log1p(maxHitCount);
         lineTaskExecutor.executeLines(image.height(), lineIndex -> processLine(image, lineIndex, maxDensity));
     }
 
     private int findMaximumHitCount(FractalImage image) {
-        return lineTaskExecutor.executeRanges(image.height(), (firstLine, endLine) -> findMaximumHitCount(image, firstLine, endLine))
+        return lineTaskExecutor.executeRanges(
+                        image.height(),
+                        (firstLine, endLine) -> findMaximumHitCount(image, firstLine, endLine))
                 .stream()
                 .mapToInt(Integer::intValue)
                 .max()
@@ -39,7 +40,9 @@ public final class LogDensityStep implements ImageProcessingStep {
             int firstPixelIndex = lineIndex * image.width();
             int endPixelIndex = firstPixelIndex + image.width();
 
-            for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) maximumHitCount = Math.max(maximumHitCount, image.data()[pixelIndex].hitCount());
+            for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) {
+                maximumHitCount = Math.max(maximumHitCount, image.hitCount(pixelIndex));
+            }
         }
 
         return maximumHitCount;
@@ -50,26 +53,31 @@ public final class LogDensityStep implements ImageProcessingStep {
         int endPixelIndex = firstPixelIndex + image.width();
 
         for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) {
-            Pixel currentPixel = image.data()[pixelIndex];
-            image.data()[pixelIndex] = correctPixel(currentPixel, maxDensity);
+            correctPixel(image, pixelIndex, maxDensity);
         }
     }
 
-    private Pixel correctPixel(Pixel pixel, double maxDensity) {
-        if (pixel.hitCount() == 0)return pixel;
+    private void correctPixel(FractalImage image, int pixelIndex, double maxDensity) {
+        int hitCount = image.hitCount(pixelIndex);
+        if (hitCount == 0) return;
 
-        double relativeDensity = Math.log1p(pixel.hitCount()) / maxDensity;
+        double relativeDensity = Math.log1p(hitCount) / maxDensity;
 
-        if (hasNoColor(pixel)) {
+        if (hasNoColor(image, pixelIndex)) {
             int brightness = scaleColorComponent(255, relativeDensity);
-            return new Pixel(brightness, brightness, brightness, pixel.hitCount());
+            image.setColor(pixelIndex, brightness, brightness, brightness);
+            return;
         }
 
-        return new Pixel(scaleColorComponent(pixel.red(), relativeDensity), scaleColorComponent(pixel.green(), relativeDensity), scaleColorComponent(pixel.blue(), relativeDensity), pixel.hitCount());
+        image.setColor(
+                pixelIndex,
+                scaleColorComponent(image.red(pixelIndex), relativeDensity),
+                scaleColorComponent(image.green(pixelIndex), relativeDensity),
+                scaleColorComponent(image.blue(pixelIndex), relativeDensity));
     }
 
-    private boolean hasNoColor(Pixel pixel) {
-        return pixel.red() == 0 && pixel.green() == 0 && pixel.blue() == 0;
+    private boolean hasNoColor(FractalImage image, int pixelIndex) {
+        return image.rgb(pixelIndex) == 0;
     }
 
     private int scaleColorComponent(int colorComponent, double relativeDensity) {

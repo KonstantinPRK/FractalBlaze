@@ -1,16 +1,16 @@
 package application.rendering.transformation;
 
-import application.model.Point;
+import application.rendering.MutablePoint;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class BentTransformation implements Transformation {
     @Override
-    public Point apply(Point point) {
+    public void apply(MutablePoint point) {
         double transformedX = point.x() < 0.0 ? point.x() * 2.0 : point.x();
         double transformedY = point.y() < 0.0 ? point.y() / 2.0 : point.y();
 
-        return new Point(transformedX, transformedY);
+        point.set(transformedX, transformedY);
     }
 
     @Override

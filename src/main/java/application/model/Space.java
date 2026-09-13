@@ -6,7 +6,7 @@ public record Space(
         double visibleWorldHeight) {
 
 
-    public boolean contains(Point point) {
+    public boolean contains(double pointX, double pointY) {
         double leftBorder = focusPoint.x() - visibleWorldWidth / 2;
 
         double rightBorder = focusPoint.x() + visibleWorldWidth / 2;
@@ -15,9 +15,9 @@ public record Space(
 
         double topBorder = focusPoint.y() + visibleWorldHeight / 2;
 
-        return point.x() >= leftBorder
-                && point.x() < rightBorder
-                && point.y() >= bottomBorder
-                && point.y() < topBorder;
+        return pointX >= leftBorder
+                && pointX < rightBorder
+                && pointY >= bottomBorder
+                && pointY < topBorder;
     }
 }

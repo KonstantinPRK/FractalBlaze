@@ -18,9 +18,9 @@ public class Stroker {
         this.trajectoryDrawer = trajectoryDrawer;
     }
 
-    public int calculateTrajectoryCount(RenderingContext context) {
-        int completedTrajectoryCount = context.iterationCount() / ITERATIONS_PER_TRAJECTORY;
-        boolean hasIncompleteTrajectory = context.iterationCount() % ITERATIONS_PER_TRAJECTORY != 0;
+    public int calculateTrajectoryCount(int iterationCount) {
+        int completedTrajectoryCount = iterationCount / ITERATIONS_PER_TRAJECTORY;
+        boolean hasIncompleteTrajectory = iterationCount % ITERATIONS_PER_TRAJECTORY != 0;
 
         return completedTrajectoryCount + (hasIncompleteTrajectory ? 1 : 0);
     }

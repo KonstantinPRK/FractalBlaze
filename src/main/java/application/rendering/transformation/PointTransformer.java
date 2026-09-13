@@ -1,14 +1,14 @@
 package application.rendering.transformation;
 
 import application.model.TransformationParameters;
-import application.model.Point;
+import application.rendering.MutablePoint;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PointTransformer {
 
-    public Point applyTransformation(
-            Point point,
+    public void applyTransformation(
+            MutablePoint point,
             Transformation transformation,
             TransformationParameters parameters,
             double cosOfRotation,
@@ -23,8 +23,8 @@ public class PointTransformer {
         double shiftedX = shiftCoordinate(rotatedX, parameters.shiftX());
         double shiftedY = shiftCoordinate(rotatedY, parameters.shiftY());
 
-        Point transformedPoint = applyVariation(shiftedX, shiftedY, transformation);
-        return transformedPoint;
+        point.set(shiftedX, shiftedY);
+        transformation.apply(point);
     }
 
     private double scaleCoordinate(double coordinate, double scale) {
@@ -43,7 +43,4 @@ public class PointTransformer {
         return coordinate + shift;
     }
 
-    private Point applyVariation(double coordinateX, double coordinateY, Transformation transformation) {
-        return transformation.apply(new Point(coordinateX, coordinateY));
-    }
 }

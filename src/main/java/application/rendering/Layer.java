@@ -1,6 +1,10 @@
 package application.rendering;
 
+import application.model.ImageSize;
+
 public final class Layer {
+    private static final long BYTES_PER_PIXEL = Integer.BYTES + 3L * Long.BYTES;
+
     private final int width, height;
     private final int[] hitCounts;
     private final long[] redSums, greenSums, blueSums;
@@ -10,7 +14,7 @@ public final class Layer {
         this.width = width;
         this.height = height;
 
-        int pixelCount = width * height;
+        int pixelCount = Math.toIntExact((long) width * height);
 
         hitCounts = new int[pixelCount];
         redSums = new long[pixelCount];
@@ -24,6 +28,10 @@ public final class Layer {
 
     public int height() {
         return height;
+    }
+
+    public static long estimateMemoryUsage(ImageSize imageSize) {
+        return Math.multiplyExact(imageSize.pixelCount(), BYTES_PER_PIXEL);
     }
 
 

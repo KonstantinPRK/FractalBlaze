@@ -1,7 +1,7 @@
 package application.rendering.transformation;
 
 import application.configuration.setting.TransformationCalculationSettings;
-import application.model.Point;
+import application.rendering.MutablePoint;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,10 +13,12 @@ public final class HorseshoeTransformation implements Transformation {
     }
 
     @Override
-    public Point apply(Point point) {
-        double radius = Math.sqrt(point.x() * point.x() + point.y() * point.y()) + settings.epsilon();
+    public void apply(MutablePoint point) {
+        double x = point.x();
+        double y = point.y();
+        double radius = Math.sqrt(x * x + y * y) + settings.epsilon();
 
-        return new Point((point.x() - point.y()) * (point.x() + point.y()) / radius, 2.0 * point.x() * point.y() / radius);
+        point.set((x - y) * (x + y) / radius, 2.0 * x * y / radius);
     }
 
     @Override

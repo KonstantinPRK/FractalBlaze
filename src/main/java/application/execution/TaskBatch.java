@@ -33,13 +33,17 @@ public final class TaskBatch<TaskResult> implements AutoCloseable {
             Future<TaskResult> completedTask = completedTasks.take();
             pendingTasks.remove(completedTask);
             return completedTask.get();
+
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Ожидание результата задачи прервано", exception);
+
         } catch (ExecutionException exception) {
             throw new IllegalStateException("Не удалось выполнить задачу", exception.getCause());
+
         }
     }
+
 
     @Override
     public void close() {

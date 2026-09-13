@@ -3,7 +3,6 @@ package application.image.processing.step;
 import application.configuration.setting.GammaCorrectionSettings;
 import application.execution.LineTaskExecutor;
 import application.model.FractalImage;
-import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -28,16 +27,14 @@ public final class GammaCorrectionStep implements ImageProcessingStep {
         int endPixelIndex = firstPixelIndex + image.width();
 
         for (int pixelIndex = firstPixelIndex; pixelIndex < endPixelIndex; pixelIndex++) {
-            Pixel currentPixel = image.data()[pixelIndex];
+            if (image.rgb(pixelIndex) == 0) continue;
 
-            if (isBlack(currentPixel))continue;
-
-            image.data()[pixelIndex] = new Pixel(applyGamma(currentPixel.red()), applyGamma(currentPixel.green()), applyGamma(currentPixel.blue()), currentPixel.hitCount());
+            image.setColor(
+                    pixelIndex,
+                    applyGamma(image.red(pixelIndex)),
+                    applyGamma(image.green(pixelIndex)),
+                    applyGamma(image.blue(pixelIndex)));
         }
-    }
-
-    private boolean isBlack(Pixel pixel) {
-        return pixel.red() == 0 && pixel.green() == 0 && pixel.blue() == 0;
     }
 
     private int applyGamma(int colorComponent) {

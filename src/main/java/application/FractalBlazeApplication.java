@@ -1,28 +1,37 @@
 package application;
 
 import application.configuration.GenerationConfiguration;
-import application.image.encoding.ImageEncoder;
-import application.image.encoding.ImageFile;
+import application.execution.TaskRunner;
 import application.image.processing.ImagePostProcessor;
 import application.model.FractalImage;
+import application.rendering.RenderResourcePlanner;
 import application.rendering.renderer.Renderer;
 import application.ui.console.ConsoleController;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class FractalBlazeApplication {
+    private final TaskRunner taskRunner;
+    private final RenderResourcePlanner renderResourcePlanner;
     private final ConsoleController userInterface;
     private final ImagePostProcessor imagePostProcessor;
-    private final ImageEncoder imageEncoder;
 
-    public FractalBlazeApplication(ConsoleController userInterface, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder) {
+    public FractalBlazeApplication(
+            TaskRunner taskRunner,
+            RenderResourcePlanner renderResourcePlanner,
+            ConsoleController userInterface,
+            ImagePostProcessor imagePostProcessor)
+    {
+        this.taskRunner = taskRunner;
+        this.renderResourcePlanner = renderResourcePlanner;
         this.userInterface = userInterface;
         this.imagePostProcessor = imagePostProcessor;
-        this.imageEncoder = imageEncoder;
     }
 
     public void start() {
         GenerationConfiguration configuration = userInterface.requestConfiguration();
+        taskRunner.selectMode(configuration.executionMode());
+        renderResourcePlanner.ensureGenerationCanStart(configuration.imageSize());
 
         Renderer imageRenderer = configuration.renderer();
 
@@ -37,7 +46,6 @@ public final class FractalBlazeApplication {
 
         FractalImage correctedImage = imagePostProcessor.process(renderedImage);
 
-        ImageFile imageFile = imageEncoder.encode(correctedImage, configuration.imageWriter());
-        userInterface.saveFractalImage(imageFile, configuration.outputPath());
+        userInterface.saveFractalImage(correctedImage, configuration.imageWriter(), configuration.outputPath());
     }
 }

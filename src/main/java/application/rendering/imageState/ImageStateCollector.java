@@ -10,6 +10,7 @@ public final class ImageStateCollector {
     private final LayerMerger layerMerger;
     private final LayerToImageMapper layerToImageMapper;
     private final LineTaskExecutor lineTaskExecutor;
+
     private Layer accumulatedLayer;
 
     public ImageStateCollector(FractalImage canvas, LayerMerger layerMerger, LayerToImageMapper layerToImageMapper, LineTaskExecutor lineTaskExecutor) {
@@ -20,7 +21,7 @@ public final class ImageStateCollector {
     }
 
     public void collectLayer(Layer layer) {
-        if (!layer.hasHits())return;
+        if (!layer.hasHits()) return;
 
         if (accumulatedLayer == null) {
             accumulatedLayer = layer;
@@ -31,7 +32,7 @@ public final class ImageStateCollector {
     }
 
     public FractalImage getSnapshot() {
-        if (accumulatedLayer == null)return canvas;
+        if (accumulatedLayer == null) return canvas;
 
         lineTaskExecutor.executeLines(canvas.height(), lineIndex -> layerToImageMapper.mapLine(accumulatedLayer, canvas, lineIndex));
 

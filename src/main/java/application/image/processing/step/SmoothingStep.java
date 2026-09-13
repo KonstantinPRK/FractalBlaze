@@ -2,7 +2,6 @@ package application.image.processing.step;
 
 import application.execution.LineTaskExecutor;
 import application.model.FractalImage;
-import application.model.Pixel;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -24,19 +23,24 @@ public final class SmoothingStep implements ImageProcessingStep {
 
     @Override
     public void process(FractalImage image) {
-        Pixel[] sourcePixels = image.data().clone();
+        int[] sourceRgb = image.copyRgb();
 
-        lineTaskExecutor.executeLines(image.height(), lineIndex -> processLine(image, sourcePixels, lineIndex));
+        lineTaskExecutor.executeLines(image.height(), lineIndex -> processLine(image, sourceRgb, lineIndex));
     }
 
-    private void processLine(FractalImage image, Pixel[] sourcePixels, int lineIndex) {
+    private void processLine(FractalImage image, int[] sourceRgb, int lineIndex) {
         for (int pixelX = 0; pixelX < image.width(); pixelX++) {
-            Pixel smoothedPixel = calculateSmoothedPixel(pixelX, lineIndex, image, sourcePixels);
-            image.setPixel(pixelX, lineIndex, smoothedPixel);
+            int pixelIndex = lineIndex * image.width() + pixelX;
+            image.setRgb(pixelIndex, calculateSmoothedRgb(pixelX, lineIndex, image, sourceRgb));
         }
     }
 
-    private Pixel calculateSmoothedPixel(int centerPixelX, int centerPixelY, FractalImage image, Pixel[] sourcePixels) {
+    private int calculateSmoothedRgb(
+            int centerPixelX,
+            int centerPixelY,
+            FractalImage image,
+            int[] sourceRgb)
+    {
         int redSum = 0;
         int greenSum = 0;
         int blueSum = 0;
@@ -47,21 +51,22 @@ public final class SmoothingStep implements ImageProcessingStep {
                 int neighborPixelX = centerPixelX + horizontalOffset;
                 int neighborPixelY = centerPixelY + verticalOffset;
 
-                if (!image.contains(neighborPixelX, neighborPixelY))continue;
+                if (!image.contains(neighborPixelX, neighborPixelY)) continue;
 
                 int kernelWeight = GAUSSIAN_KERNEL[verticalOffset + KERNEL_RADIUS][horizontalOffset + KERNEL_RADIUS];
-                Pixel neighborPixel = sourcePixels[neighborPixelY * image.width() + neighborPixelX];
+                int neighborRgb = sourceRgb[neighborPixelY * image.width() + neighborPixelX];
 
-                redSum += neighborPixel.red() * kernelWeight;
-                greenSum += neighborPixel.green() * kernelWeight;
-                blueSum += neighborPixel.blue() * kernelWeight;
+                redSum += FractalImage.redComponent(neighborRgb) * kernelWeight;
+                greenSum += FractalImage.greenComponent(neighborRgb) * kernelWeight;
+                blueSum += FractalImage.blueComponent(neighborRgb) * kernelWeight;
                 appliedWeightSum += kernelWeight;
             }
         }
 
-        Pixel originalPixel = sourcePixels[centerPixelY * image.width() + centerPixelX];
-
-        return new Pixel(divideAndRound(redSum, appliedWeightSum), divideAndRound(greenSum, appliedWeightSum), divideAndRound(blueSum, appliedWeightSum), originalPixel.hitCount());
+        return FractalImage.packRgb(
+                divideAndRound(redSum, appliedWeightSum),
+                divideAndRound(greenSum, appliedWeightSum),
+                divideAndRound(blueSum, appliedWeightSum));
     }
 
     private int divideAndRound(int colorSum, int weightSum) {

@@ -1,13 +1,14 @@
 package application.ui.console;
 
 import application.configuration.restriction.GenerationInputRestrictions;
-import application.configuration.restriction.ImageSizeRestrictions;
 import application.configuration.restriction.TransformationInputRestrictions;
 import application.configuration.setting.GenerationSettings;
 import application.configuration.GenerationConfiguration;
 import application.configuration.catalog.Catalog;
 import application.execution.ExecutionMode;
-import application.execution.TaskRunner;
+import application.model.AspectRatio;
+import application.model.ImageQuality;
+import application.model.ImageShape;
 import application.model.ImageSize;
 import application.model.Space;
 import application.model.TransformationParameters;
@@ -19,47 +20,76 @@ import org.springframework.stereotype.Component;
 import javax.imageio.ImageWriter;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class ConfigurationReader {
-    private final TaskRunner taskRunner;
     private final ConsolePanel consolePanel;
 
+    private final Catalog<ImageQuality> imageQualityCatalog;
+    private final Catalog<ImageShape> imageShapeCatalog;
+    private final Catalog<AspectRatio> aspectRatioCatalog;
     private final Catalog<ImageWriter> imageWriterCatalog;
     private final Catalog<Renderer> rendererCatalog;
     private final Catalog<Transformation> transformationCatalog;
 
-    private final ImageSizeRestrictions imageSizeRestrictions;
     private final GenerationInputRestrictions generationInputRestrictions;
     private final TransformationInputRestrictions transformationInputRestrictions;
     private final GenerationSettings generationSettings;
 
 
-    public ConfigurationReader(Catalog<ImageWriter> imageWriterCatalog, Catalog<Renderer> rendererCatalog, Catalog<Transformation> transformationCatalog, ConsolePanel consolePanel, TaskRunner taskRunner, ImageSizeRestrictions imageSizeRestrictions, GenerationInputRestrictions generationInputRestrictions, TransformationInputRestrictions transformationInputRestrictions, GenerationSettings generationSettings) {
+    public ConfigurationReader(
+            Catalog<ImageQuality> imageQualityCatalog,
+            Catalog<ImageShape> imageShapeCatalog,
+            Catalog<AspectRatio> aspectRatioCatalog,
+            Catalog<ImageWriter> imageWriterCatalog,
+            Catalog<Renderer> rendererCatalog,
+            Catalog<Transformation> transformationCatalog,
+
+            ConsolePanel consolePanel,
+
+            GenerationInputRestrictions generationInputRestrictions,
+            TransformationInputRestrictions transformationInputRestrictions,
+            GenerationSettings generationSettings)
+    {
+        this.imageQualityCatalog = imageQualityCatalog;
+        this.imageShapeCatalog = imageShapeCatalog;
+        this.aspectRatioCatalog = aspectRatioCatalog;
         this.imageWriterCatalog = imageWriterCatalog;
         this.rendererCatalog = rendererCatalog;
         this.transformationCatalog = transformationCatalog;
+
         this.consolePanel = consolePanel;
-        this.taskRunner = taskRunner;
-        this.imageSizeRestrictions = imageSizeRestrictions;
+
         this.generationInputRestrictions = generationInputRestrictions;
         this.transformationInputRestrictions = transformationInputRestrictions;
         this.generationSettings = generationSettings;
     }
 
     public GenerationConfiguration requestConfiguration() {
-        Path outputPath = requestOutputPath();
         ImageSize imageSize = requestImageSize();
         ImageWriter imageWriter = requestImageWriter();
+        Path outputPath = requestOutputPath();
         Renderer renderer = requestRenderer();
+        ExecutionMode executionMode = requestExecutionMode();
         Space space = requestSpace();
         int iterationCount = requestIterationCount();
         int randomSeed = requestRandomSeed();
         TransformationParameters transformationParameters = requestTransformationParameters();
         List<Transformation> transformations = requestTransformationsList();
-        taskRunner.selectMode(requestExecutionMode());
 
-        return new GenerationConfiguration(outputPath, imageSize, imageWriter, renderer, space, iterationCount, randomSeed, transformationParameters, transformations);
+        return new GenerationConfiguration(
+                outputPath,
+                imageSize,
+                imageWriter,
+                renderer,
+                executionMode,
+                space,
+                iterationCount,
+                randomSeed,
+                transformationParameters,
+                transformations
+        );
     }
 
     private Path requestOutputPath() {
@@ -68,15 +98,27 @@ public class ConfigurationReader {
     }
 
     private ImageSize requestImageSize() {
-        int width = consolePanel.requestInt("Введите ширину изображения", "1920", imageSizeRestrictions.width());
-        int height = consolePanel.requestInt("Введите высоту изображения", "1280", imageSizeRestrictions.height());
+        ImageQuality quality = imageQualityCatalog.getAlgorithm(
+                consolePanel.requestOption(
+                        "Выберите качество изображения",
+                        imageQualityCatalog.showCatalog()));
 
-        return new ImageSize(width, height);
+        ImageShape shape = imageShapeCatalog.getAlgorithm(
+                consolePanel.requestOption(
+                        "Выберите ориентацию изображения",
+                        imageShapeCatalog.showCatalog()));
+
+        AspectRatio aspectRatio = aspectRatioCatalog.getAlgorithm(
+                consolePanel.requestOption(
+                        "Выберите соотношение сторон",
+                        aspectRatioCatalog.showCatalog()));
+
+        return ImageSize.calculate(quality, shape, aspectRatio);
     }
 
     private ImageWriter requestImageWriter() {
         List<String> formatNames = imageWriterCatalog.showCatalog();
-        String selectedFormatName = consolePanel.requestOption("Выберите формат изображения", formatNames);
+        String selectedFormatName = consolePanel.requestOption("Выберите формат файла", formatNames);
 
         return imageWriterCatalog.getAlgorithm(selectedFormatName);
     }
@@ -140,4 +182,5 @@ public class ConfigurationReader {
         String example = "1-" + availableTransformationNames.size() + " или 1 3 5 или 1, 3, 5";
         return consolePanel.requestOptions("Выберите одно или несколько преобразований", example, availableTransformationNames);
     }
+
 }

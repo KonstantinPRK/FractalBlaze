@@ -15,18 +15,25 @@ public final class LineTaskExecutor {
     }
 
     public void executeLines(int lineCount, IntConsumer lineProcessor) {
-        try (TaskBatch<Void> taskBatch = taskRunner.executeRanges(lineCount, (firstLine, endLine) -> {
-            for (int lineIndex = firstLine; lineIndex < endLine; lineIndex++) lineProcessor.accept(lineIndex);
-            return null;
-        })) {
+        try (TaskBatch<Void> taskBatch = taskRunner.executeRanges(
+                lineCount,
+                taskRunner.getThreadCount(),
+                (firstLine, endLine) -> processLineRange(firstLine, endLine, lineProcessor)))
+        {
             while (taskBatch.hasNextResult()) taskBatch.takeNextResult();
         }
     }
 
+    private Void processLineRange(int firstLine, int endLine, IntConsumer lineProcessor) {
+        for (int lineIndex = firstLine; lineIndex < endLine; lineIndex++) lineProcessor.accept(lineIndex);
+        return null;
+    }
+
+
     public <TaskResult> List<TaskResult> executeRanges(int lineCount, TaskRunner.RangeTask<TaskResult> rangeTask) {
         List<TaskResult> results = new ArrayList<>(Math.min(lineCount, taskRunner.getThreadCount()));
 
-        try (TaskBatch<TaskResult> taskBatch = taskRunner.executeRanges(lineCount, rangeTask)) {
+        try (TaskBatch<TaskResult> taskBatch = taskRunner.executeRanges(lineCount, taskRunner.getThreadCount(), rangeTask)) {
             while (taskBatch.hasNextResult()) results.add(taskBatch.takeNextResult());
         }
 

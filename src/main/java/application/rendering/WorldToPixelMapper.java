@@ -1,25 +1,22 @@
 package application.rendering;
 
-import application.model.Point;
 import application.model.Space;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WorldToPixelMapper {
 
-    public int mapHorizontalCoordinate(Point point, RenderingContext context) {
-        Space space = context.space();
+    public int mapHorizontalCoordinate(double pointX, Space space, int imageWidth) {
         double leftBorder = space.focusPoint().x() - space.visibleWorldWidth() / 2;
-        double relativeHorizontalPosition = (point.x() - leftBorder) / space.visibleWorldWidth();
+        double relativeHorizontalPosition = (pointX - leftBorder) / space.visibleWorldWidth();
 
-        return (int) (relativeHorizontalPosition * context.imageWidth());
+        return (int) (relativeHorizontalPosition * imageWidth);
     }
 
-    public int mapVerticalCoordinate(Point point, RenderingContext context) {
-        Space space = context.space();
+    public int mapVerticalCoordinate(double pointY, Space space, int imageHeight) {
         double bottomBorder = space.focusPoint().y() - space.visibleWorldHeight() / 2;
-        double relativeVerticalPosition = (point.y() - bottomBorder) / space.visibleWorldHeight();
+        double relativeVerticalPosition = (pointY - bottomBorder) / space.visibleWorldHeight();
 
-        return context.imageHeight() - 1 - (int) (relativeVerticalPosition * context.imageHeight());
+        return imageHeight - 1 - (int) (relativeVerticalPosition * imageHeight);
     }
 }

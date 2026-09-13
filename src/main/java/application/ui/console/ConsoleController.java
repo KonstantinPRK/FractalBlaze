@@ -1,9 +1,10 @@
 package application.ui.console;
 
-import application.image.encoding.ImageFile;
 import application.configuration.GenerationConfiguration;
+import application.model.FractalImage;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageWriter;
 import java.nio.file.Path;
 
 @Component
@@ -22,7 +23,7 @@ public class ConsoleController {
     }
 
 
-    public void saveFractalImage(ImageFile imageFile, Path outputDirectory) {
-        imageFileSaver.save(imageFile, outputDirectory);
+    public void saveFractalImage(FractalImage image, ImageWriter imageWriter, Path outputDirectory) {
+        imageFileSaver.save(image, imageWriter, outputDirectory);
     }
 }

@@ -1,10 +1,9 @@
 package application.rendering.transformation;
 
-import application.model.Point;
+import application.rendering.MutablePoint;
 
-import java.util.function.Function;
+public interface Transformation {
+    void apply(MutablePoint point);
 
-public interface Transformation extends Function<Point, Point> {
     String getName();
 }
-

@@ -1,13 +1,12 @@
 package application.rendering.transformation;
 
-import application.model.Point;
+import application.rendering.MutablePoint;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class LinearTransformation implements Transformation {
     @Override
-    public Point apply(Point point) {
-        return point;
+    public void apply(MutablePoint point) {
     }
 
     @Override

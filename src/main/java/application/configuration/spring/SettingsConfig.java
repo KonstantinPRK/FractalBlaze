@@ -5,6 +5,7 @@ import application.configuration.setting.ConsoleLayoutSettings;
 import application.configuration.setting.GammaCorrectionSettings;
 import application.configuration.setting.GenerationSettings;
 import application.configuration.setting.OutputFileSettings;
+import application.configuration.setting.RenderResourceSettings;
 import application.configuration.setting.TaskRunnerSettings;
 import application.configuration.setting.TrajectorySettings;
 import application.configuration.setting.TransformationCalculationSettings;
@@ -31,11 +32,28 @@ public class SettingsConfig {
     }
 
     @Bean
-    public TaskRunnerSettings taskRunnerSettings(@Value("${fractal.execution.thread-count:0}") int configuredThreadCount) {
+    public TaskRunnerSettings taskRunnerSettings(
+            @Value("${fractal.execution.processor-share}") double processorShare,
+            @Value("${fractal.execution.thread-count}") int configuredThreadCount)
+    {
+        if (!Double.isFinite(processorShare) || processorShare <= 0.0 || processorShare > 1.0) {
+            throw new IllegalArgumentException("Доля используемых процессоров должна быть больше 0 и не больше 1");
+        }
+
         int availableProcessorCount = Runtime.getRuntime().availableProcessors();
-        int threadCount = configuredThreadCount > 0 ? configuredThreadCount : availableProcessorCount;
+        int automaticThreadCount = Math.max(1, (int) Math.floor(availableProcessorCount * processorShare));
+        int threadCount = configuredThreadCount > 0
+                ? Math.min(configuredThreadCount, automaticThreadCount)
+                : automaticThreadCount;
 
         return new TaskRunnerSettings(threadCount);
+    }
+
+    @Bean
+    public RenderResourceSettings renderResourceSettings(
+            @Value("${fractal.render.available-heap-share}") double availableHeapShare) {
+
+        return new RenderResourceSettings(availableHeapShare);
     }
 
     @Bean

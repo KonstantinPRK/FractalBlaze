@@ -7,6 +7,7 @@ import application.model.Space;
 import application.model.TransformationParameters;
 import application.rendering.ColorPalette;
 import application.rendering.Layer;
+import application.rendering.RenderResourcePlanner;
 import application.rendering.RenderingContext;
 import application.rendering.imageState.ImageStateCollector;
 import application.rendering.imageState.ImageStateCollectorFactory;
@@ -22,12 +23,14 @@ public final class FractalFlameRenderer implements Renderer {
     private final Stroker stroker;
     private final ImageStateCollectorFactory imageStateCollectorFactory;
     private final TaskRunner taskRunner;
+    private final RenderResourcePlanner renderResourcePlanner;
 
-    public FractalFlameRenderer(ColorPalette colorPalette, Stroker stroker, ImageStateCollectorFactory imageStateCollectorFactory, TaskRunner taskRunner) {
+    public FractalFlameRenderer(ColorPalette colorPalette, Stroker stroker, ImageStateCollectorFactory imageStateCollectorFactory, TaskRunner taskRunner, RenderResourcePlanner renderResourcePlanner) {
         this.colorPalette = colorPalette;
         this.stroker = stroker;
         this.imageStateCollectorFactory = imageStateCollectorFactory;
         this.taskRunner = taskRunner;
+        this.renderResourcePlanner = renderResourcePlanner;
     }
 
     @Override
@@ -45,7 +48,7 @@ public final class FractalFlameRenderer implements Renderer {
             long randomSeed)
     {
         RenderingContext context = RenderingContext.create(
-                canvas,
+                canvas.imageSize(),
                 space,
                 transformationParameters,
                 transformations,
@@ -57,10 +60,17 @@ public final class FractalFlameRenderer implements Renderer {
     }
 
     private FractalImage drawImage(FractalImage canvas, RenderingContext context) {
-        int trajectoryCount = stroker.calculateTrajectoryCount(context);
+        int trajectoryCount = stroker.calculateTrajectoryCount(context.iterationCount());
+        int layerCount = renderResourcePlanner.calculateLayerCount(
+                canvas.imageSize(),
+                taskRunner.getThreadCount(),
+                trajectoryCount);
         ImageStateCollector imageStateCollector = imageStateCollectorFactory.create(canvas);
 
-        try (TaskBatch<Layer> renderedLayers = taskRunner.executeRanges(trajectoryCount, (firstTrajectory, endTrajectory) -> stroker.spray(context, firstTrajectory, endTrajectory)))
+        try (TaskBatch<Layer> renderedLayers = taskRunner.executeRanges(
+                trajectoryCount,
+                layerCount,
+                (firstTrajectory, endTrajectory) -> stroker.spray(context, firstTrajectory, endTrajectory)))
         {
             while (renderedLayers.hasNextResult()) imageStateCollector.collectLayer(renderedLayers.takeNextResult());
         }

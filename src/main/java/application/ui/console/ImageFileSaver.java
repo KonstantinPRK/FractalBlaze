@@ -1,62 +1,77 @@
 package application.ui.console;
 
 import application.configuration.setting.OutputFileSettings;
-import application.image.encoding.ImageFile;
+import application.image.encoding.ImageEncoder;
+import application.model.FractalImage;
 import application.ui.console.io.ConsolePanel;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.FileAlreadyExistsException;
+import java.util.Locale;
 
 @Component
 public class ImageFileSaver {
     private final ConsolePanel consolePanel;
     private final OutputFileSettings settings;
+    private final ImageEncoder imageEncoder;
 
-    public ImageFileSaver(ConsolePanel consolePanel, OutputFileSettings settings) {
+    public ImageFileSaver(ConsolePanel consolePanel, OutputFileSettings settings, ImageEncoder imageEncoder) {
         this.consolePanel = consolePanel;
         this.settings = settings;
+        this.imageEncoder = imageEncoder;
     }
 
-    public Path save(ImageFile imageFile, Path outputDirectory) {
+    public Path save(FractalImage image, ImageWriter imageWriter, Path outputDirectory) {
         Path normalizedOutputDirectory = outputDirectory.toAbsolutePath().normalize();
-        String fileName = settings.baseFileName() + "." + imageFile.fileExtension();
-        Path outputFile = findAvailableOutputFile(normalizedOutputDirectory, fileName);
+        String fileExtension = imageWriter.getOriginatingProvider().getFileSuffixes()[0].toLowerCase(Locale.ROOT);
+        String fileName = settings.baseFileName() + "." + fileExtension;
+        Path outputFile = reserveOutputFile(normalizedOutputDirectory, fileName);
 
-        saveFile(imageFile, normalizedOutputDirectory, outputFile);
+        try {
+            imageEncoder.encode(image, imageWriter, outputFile);
+        } catch (RuntimeException | Error exception) {
+            deleteIncompleteFile(outputFile, exception);
+            throw exception;
+        }
+
         consolePanel.showMessage("Изображение сохранено в " + outputFile);
 
         return outputFile;
     }
 
-    private Path findAvailableOutputFile(Path outputDirectory, String fileName) {
-        Path requestedOutputFile = outputDirectory.resolve(fileName);
-
-        if (!Files.exists(requestedOutputFile))return requestedOutputFile;
-
+    private Path reserveOutputFile(Path outputDirectory, String fileName) {
         int extensionStart = fileName.lastIndexOf('.');
         String nameWithoutExtension = fileName.substring(0, extensionStart);
         String extension = fileName.substring(extensionStart);
-        int fileNumber = 1;
 
-        Path availableOutputFile;
-        do {
-            availableOutputFile = outputDirectory.resolve(nameWithoutExtension + "-" + fileNumber + extension);
-            fileNumber++;
-        } while (Files.exists(availableOutputFile));
-
-        return availableOutputFile;
-    }
-
-    private void saveFile(ImageFile imageFile, Path outputDirectory, Path outputFile) {
         try {
             Files.createDirectories(outputDirectory);
-            Files.write(outputFile, imageFile.content(), StandardOpenOption.CREATE_NEW);
+
+            for (int fileNumber = 0; ; fileNumber++) {
+                String availableFileName = fileNumber == 0
+                        ? fileName
+                        : nameWithoutExtension + "-" + fileNumber + extension;
+
+                try {
+                    return Files.createFile(outputDirectory.resolve(availableFileName));
+                } catch (FileAlreadyExistsException ignored) {
+                }
+            }
         } catch (IOException exception) {
-            throw new UncheckedIOException("Не удалось сохранить файл: " + outputFile, exception);
+            throw new UncheckedIOException("Не удалось подготовить файл изображения в каталоге: " + outputDirectory, exception);
+        }
+    }
+
+    private void deleteIncompleteFile(Path outputFile, Throwable originalException) {
+        try {
+            Files.deleteIfExists(outputFile);
+        } catch (IOException deletionException) {
+            originalException.addSuppressed(deletionException);
         }
     }
 }

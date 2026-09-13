@@ -1,5 +1,6 @@
 package application.rendering;
 
+import application.model.ImageSize;
 import application.model.TransformationParameters;
 import application.model.FractalImage;
 import application.model.Space;
@@ -21,7 +22,7 @@ public record RenderingContext(
         long randomSeed)
 {
     public static RenderingContext create(
-            FractalImage canvas,
+            ImageSize imageSize,
             Space space,
             TransformationParameters transformationParameters,
             List<Transformation> transformations,
@@ -36,8 +37,8 @@ public record RenderingContext(
         double sinOfRotation = Math.sin(transformationParameters.rotationAngleInRadians());
 
         return new RenderingContext(
-                canvas.width(),
-                canvas.height(),
+                imageSize.width(),
+                imageSize.height(),
                 space,
                 transformationParameters,
                 List.copyOf(transformations),

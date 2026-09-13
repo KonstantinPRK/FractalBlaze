@@ -1,5 +1,6 @@
 package application.configuration;
 
+import application.execution.ExecutionMode;
 import application.model.ImageSize;
 import application.model.Space;
 import application.rendering.renderer.Renderer;
@@ -15,6 +16,7 @@ public record GenerationConfiguration(
         ImageSize imageSize,
         ImageWriter imageWriter,
         Renderer renderer,
+        ExecutionMode executionMode,
         Space visibleSpace,
         Integer iterationCount,
         Integer randomSeed,

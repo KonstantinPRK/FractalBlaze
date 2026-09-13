@@ -27,11 +27,18 @@ public final class TaskRunner implements AutoCloseable {
         return activeThreadCount;
     }
 
-    public <TaskResult> TaskBatch<TaskResult> executeRanges(int itemCount, RangeTask<TaskResult> rangeTask) {
+    public <TaskResult> TaskBatch<TaskResult> executeRanges(
+            int itemCount,
+            int maximumTaskCount,
+            RangeTask<TaskResult> rangeTask)
+    {
+        if (itemCount < 0) throw new IllegalArgumentException("Количество элементов не должно быть отрицательным");
+        if (maximumTaskCount < 1) throw new IllegalArgumentException("Количество задач должно быть положительным");
+
         TaskBatch<TaskResult> taskBatch = new TaskBatch<>(executor);
 
         try {
-            int taskCount = Math.min(itemCount, activeThreadCount);
+            int taskCount = Math.min(itemCount, Math.min(activeThreadCount, maximumTaskCount));
 
             for (int taskIndex = 0; taskIndex < taskCount; taskIndex++) {
                 int firstIndex = (int) ((long) itemCount * taskIndex / taskCount);
@@ -40,9 +47,11 @@ public final class TaskRunner implements AutoCloseable {
             }
 
             return taskBatch;
+
         } catch (RuntimeException | Error exception) {
             taskBatch.close();
             throw exception;
+
         }
     }
 

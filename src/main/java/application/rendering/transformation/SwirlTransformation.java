@@ -1,18 +1,20 @@
 package application.rendering.transformation;
 
-import application.model.Point;
+import application.rendering.MutablePoint;
 import org.springframework.stereotype.Component;
 
 @Component
 public final class SwirlTransformation implements Transformation {
 
     @Override
-    public Point apply(Point point) {
-        double squaredRadius = point.x() * point.x() + point.y() * point.y();
+    public void apply(MutablePoint point) {
+        double x = point.x();
+        double y = point.y();
+        double squaredRadius = x * x + y * y;
         double sine = Math.sin(squaredRadius);
         double cosine = Math.cos(squaredRadius);
 
-        return new Point(point.x() * sine - point.y() * cosine, point.x() * cosine + point.y() * sine);
+        point.set(x * sine - y * cosine, x * cosine + y * sine);
     }
 
 

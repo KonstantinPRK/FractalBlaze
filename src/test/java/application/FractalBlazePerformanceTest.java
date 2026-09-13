@@ -3,8 +3,6 @@ package application;
 import application.configuration.GenerationConfiguration;
 import application.execution.ExecutionMode;
 import application.execution.TaskRunner;
-import application.image.encoding.ImageEncoder;
-import application.image.encoding.ImageFile;
 import application.image.processing.ImagePostProcessor;
 import application.model.FractalImage;
 import application.model.ImageSize;
@@ -33,7 +31,6 @@ class FractalBlazePerformanceTest {
 
     private final TaskRunner taskRunner;
     private final ImagePostProcessor imagePostProcessor;
-    private final ImageEncoder imageEncoder;
     private final ImageFileSaver imageFileSaver;
     private final ImageWriter imageWriter;
     private final Renderer renderer;
@@ -41,10 +38,9 @@ class FractalBlazePerformanceTest {
     private final PrintStream printer;
 
     @Autowired
-    FractalBlazePerformanceTest(TaskRunner taskRunner, ImagePostProcessor imagePostProcessor, ImageEncoder imageEncoder, ImageFileSaver imageFileSaver, @Qualifier("PNG") ImageWriter imageWriter, Renderer renderer, List<Transformation> transformations, PrintStream printer) {
+    FractalBlazePerformanceTest(TaskRunner taskRunner, ImagePostProcessor imagePostProcessor, ImageFileSaver imageFileSaver, @Qualifier("PNG") ImageWriter imageWriter, Renderer renderer, List<Transformation> transformations, PrintStream printer) {
         this.taskRunner = taskRunner;
         this.imagePostProcessor = imagePostProcessor;
-        this.imageEncoder = imageEncoder;
         this.imageFileSaver = imageFileSaver;
         this.imageWriter = imageWriter;
         this.renderer = renderer;
@@ -70,11 +66,12 @@ class FractalBlazePerformanceTest {
 
         return new GenerationConfiguration(
                 downloadsDirectory,
-                new ImageSize(4320, 7680),
+                new ImageSize(4000, 4000),
                 imageWriter,
                 renderer,
+                ExecutionMode.MULTI_THREAD,
                 new Space(new Point(0.0, 0.0), 2.0, 2.0),
-                50_000_000,
+                40_000_000,
                 42,
                 new TransformationParameters(1.0, Math.toRadians(20), -0.5, 0.5),
                 List.copyOf(transformations));
@@ -101,8 +98,7 @@ class FractalBlazePerformanceTest {
                 configuration.randomSeed());
 
         FractalImage correctedImage = imagePostProcessor.process(renderedImage);
-        ImageFile imageFile = imageEncoder.encode(correctedImage, configuration.imageWriter());
-        imageFileSaver.save(imageFile, configuration.outputPath());
+        imageFileSaver.save(correctedImage, configuration.imageWriter(), configuration.outputPath());
     }
 
     private void printSystemConfiguration() {
