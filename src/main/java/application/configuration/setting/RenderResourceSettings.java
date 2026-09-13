@@ -1,12 +1,10 @@
 package application.configuration.setting;
 
-public record RenderResourceSettings(double availableHeapShare) {
+public record RenderResourceSettings(int availableHeapPercent) {
     public RenderResourceSettings {
-        if (!Double.isFinite(availableHeapShare)
-                || availableHeapShare <= 0.0
-                || availableHeapShare >= 1.0) {
+        if (availableHeapPercent < 1 || availableHeapPercent > 99) {
             throw new IllegalArgumentException(
-                    "Доля доступной кучи должна быть больше 0 и меньше 1");
+                    "Процент доступной кучи должен находиться в диапазоне от 1 до 99");
         }
     }
 }

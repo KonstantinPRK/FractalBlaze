@@ -65,7 +65,8 @@ public final class RenderResourcePlanner {
         long maximumHeap = runtime.maxMemory();
         long currentlyUsedHeap = runtime.totalMemory() - runtime.freeMemory();
         long currentlyAvailableHeap = maximumHeap - currentlyUsedHeap;
-        long allowedHeap = (long) Math.floor(currentlyAvailableHeap * settings.availableHeapShare());
+        double availableHeapRatio = settings.availableHeapPercent() / 100.0;
+        long allowedHeap = (long) Math.floor(currentlyAvailableHeap * availableHeapRatio);
 
         return new HeapBudget(maximumHeap, currentlyAvailableHeap, allowedHeap);
     }

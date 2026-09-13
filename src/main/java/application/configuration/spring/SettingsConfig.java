@@ -33,27 +33,48 @@ public class SettingsConfig {
 
     @Bean
     public TaskRunnerSettings taskRunnerSettings(
-            @Value("${fractal.execution.processor-share}") double processorShare,
-            @Value("${fractal.execution.thread-count}") int configuredThreadCount)
+            @Value("${fractal.execution.automatic-thread-count-percent}") int automaticThreadCountPercent,
+            @Value("${fractal.execution.thread-count}") String configuredThreadCount)
     {
-        if (!Double.isFinite(processorShare) || processorShare <= 0.0 || processorShare > 1.0) {
-            throw new IllegalArgumentException("Доля используемых процессоров должна быть больше 0 и не больше 1");
+        if (automaticThreadCountPercent < 1 || automaticThreadCountPercent > 100) {
+            throw new IllegalArgumentException(
+                    "Процент процессоров для автоматического расчёта должен находиться в диапазоне от 1 до 100");
         }
 
         int availableProcessorCount = Runtime.getRuntime().availableProcessors();
-        int automaticThreadCount = Math.max(1, (int) Math.floor(availableProcessorCount * processorShare));
-        int threadCount = configuredThreadCount > 0
-                ? Math.min(configuredThreadCount, automaticThreadCount)
-                : automaticThreadCount;
+        int automaticThreadCount = Math.max(
+                1,
+                (int) ((long) availableProcessorCount * automaticThreadCountPercent / 100));
+        int threadCount = resolveThreadCount(configuredThreadCount, automaticThreadCount);
 
         return new TaskRunnerSettings(threadCount);
     }
 
+    private int resolveThreadCount(String configuredThreadCount, int automaticThreadCount) {
+        String normalizedThreadCount = configuredThreadCount.trim();
+        if (normalizedThreadCount.equalsIgnoreCase("auto")) return automaticThreadCount;
+
+        try {
+            int explicitThreadCount = Integer.parseInt(normalizedThreadCount);
+            if (explicitThreadCount < 1) {
+                throw new IllegalArgumentException(
+                        "Количество потоков должно быть значением auto или положительным целым числом");
+            }
+
+            return Math.min(explicitThreadCount, automaticThreadCount);
+
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException(
+                    "Количество потоков должно быть значением auto или положительным целым числом",
+                    exception);
+        }
+    }
+
     @Bean
     public RenderResourceSettings renderResourceSettings(
-            @Value("${fractal.render.available-heap-share}") double availableHeapShare) {
+            @Value("${fractal.render.available-heap-percent}") int availableHeapPercent) {
 
-        return new RenderResourceSettings(availableHeapShare);
+        return new RenderResourceSettings(availableHeapPercent);
     }
 
     @Bean
